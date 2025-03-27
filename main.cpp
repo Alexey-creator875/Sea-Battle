@@ -1,6 +1,8 @@
 #include <iostream>
 
+#include "SeaBattleExecutor.h"
+
 int main() {
-    std::cout << "Meow\n";
+    SeaBattleExecutor::RunApplication();
     return 0;
 }
