@@ -1,26 +1,21 @@
 cmake_minimum_required(VERSION 3.23)
 
-set(project "SeaBattle")
-project(${project})
+project(SeaBattle)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
-set(${project}_SOURCES
-        main.cpp
-        SeaBattleExecutor.cpp)
+set(SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SeaBattleExecutor.cpp
+)
 
-set(${project}_HEADERS
-        SeaBattleExecutor.h)
+set(HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/SeaBattleExecutor.h
+)
 
-set(${project}_SOURCE_LIST
-        ${${project}_SOURCES}
-        ${${project}_HEADERS})
+find_package(SFML REQUIRED COMPONENTS Graphics)
+find_package(SFML REQUIRED COMPONENTS Window)
 
-add_executable(${project}
-        ${${project}_SOURCE_LIST})
+add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
-#target_link_libraries(${project} Fraction)
-
-if(ENABLE_DEBUG)
-    target_compile_options(${project} PRIVATE -g)
-endif()
+target_link_libraries(SeaBattle PRIVATE SFML::Graphics)

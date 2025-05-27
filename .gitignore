@@ -32,4 +32,10 @@
 *.app
 
 # build directories
-/build
+build
+
+# .vscode
+.vscode
+
+# directory for images
+images
