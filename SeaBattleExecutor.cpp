@@ -27,7 +27,7 @@ namespace SeaBattleExecutor {
 void Menu(sf::RenderWindow& window) {
     // загрузка картинки заднего фона в текстуру
     sf::Texture menuBackground;
-    if (!menuBackground.loadFromFile("/Users/sergey/Sea-Battle/images/background.jpg")) {
+    if (!menuBackground.loadFromFile("../images/background.jpg")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -39,7 +39,7 @@ void Menu(sf::RenderWindow& window) {
 
     // загружаем шрифт
     sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("/Users/sergey/Sea-Battle/images/helvetica_light.otf")) {
+    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -113,17 +113,17 @@ void RunApplication() {
     sf::RenderWindow window(sf::VideoMode({kWindowLenght, kWindowHeight}), "Sea Battle");
 
     // sf::Texture empty;
-    // if (!empty.loadFromFile("/Users/sergey/Sea-Battle/images/dot.jpg")) {
+    // if (!empty.loadFromFile("../images/dot.jpg")) {
     //     throw std::runtime_error("failed to open file");
     // }
 
     // sf::Texture unknown;
-    // if (!unknown.loadFromFile("/Users/sergey/Sea-Battle/images/unknown.jpg")) {
+    // if (!unknown.loadFromFile("../images/unknown.jpg")) {
     //     throw std::runtime_error("failed to open file");
     // }
 
     // sf::Texture hitted;
-    // if (!hitted.loadFromFile("/Users/sergey/Sea-Battle/images/cross.webp.png")) {
+    // if (!hitted.loadFromFile("../images/cross.webp.png")) {
     //     throw std::runtime_error("failed to open file");
     // }
     
