@@ -13,12 +13,17 @@ const int kSize = 10;
 
 class Cell {
 protected:
-    char column;
-    int line;
     CellStatus status;
 public:
     Cell();
+    Cell(CellStatus status1);
+    Cell(const Cell &other);
     ~Cell();
+
+    CellStatus getStatus();
+    void setStatus(const CellStatus status1);
+
+
 };
 
 class Board {
