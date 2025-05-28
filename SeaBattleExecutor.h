@@ -14,7 +14,7 @@ void Menu(sf::RenderWindow& window);
 
 void StartGame(sf::RenderWindow& window);
 void ShowRules();
-void QuitGame();
+bool QuitGame(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite);
 
 void StartPreparations();
 void Fight();
