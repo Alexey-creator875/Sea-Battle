@@ -89,16 +89,28 @@ namespace SeaBattleExecutor {
 void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
 
+    // закгрузка текстуры крестика
+    sf::Texture crossTexture;
+    if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры для кнопки выхода из игры
+    sf::Texture exitButtonTexture;
+    if (!exitButtonTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
     // создание кнопки для выхода из игры
     sf::RectangleShape exitButton;
     exitButton.setSize(sf::Vector2f(kGameExitButtonSizeX, kGameExitButtonSizeY));
     exitButton.setPosition(sf::Vector2f(kGameExitButtonCoordinateX, kGameExitButtonCoordinateY));
-    exitButton.setFillColor(sf::Color::Blue);
+    exitButton.setTexture(&exitButtonTexture);
     exitButton.setOutlineThickness(1);
     exitButton.setOutlineColor(sf::Color::White);
 
     bool exitButtonChosen = false;
-
+    
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> rectangleShapeMatrix;
 
     for (size_t i = 0; i < kArraySize; ++i) {
