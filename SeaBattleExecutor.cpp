@@ -11,6 +11,7 @@
 #include <chrono>
 #include <string>
 #include <fstream>
+#include <array>
 
 
 namespace {
@@ -45,6 +46,24 @@ const unsigned int kExitCheckCharacterSize = 40;
 const int kExitCheckQuestionCoordinateY = 50;
 const int kExitCheckButtonsCoordinateY = 150;
 
+// константы для игры
+const unsigned int kArraySize = 10;
+
+const int kMatrixCoordinateX = 200;
+const int kMatrixCoordinateY = 150;
+
+const int kCellPixelSize = 30;
+
+// константы для кнопки выхода из игры
+
+const unsigned int kGameExitButtonSizeX = 50;
+const unsigned int kGameExitButtonSizeY = 50;
+
+const int kGameExitButtonCoordinateX = 40;
+const int kGameExitButtonCoordinateY = 40;
+
+
+
 std::string GetRulesFromFile() {
     std::string text;
 
@@ -68,9 +87,44 @@ std::string GetRulesFromFile() {
 
 namespace SeaBattleExecutor {
 void StartGame(sf::RenderWindow& window) {
-    window.clear(sf::Color::White);
-
     bool gameContinueExecution = true;
+
+    // закгрузка текстуры крестика
+    sf::Texture crossTexture;
+    if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры для кнопки выхода из игры
+    sf::Texture exitButtonTexture;
+    if (!exitButtonTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // создание кнопки для выхода из игры
+    sf::RectangleShape exitButton;
+    exitButton.setSize(sf::Vector2f(kGameExitButtonSizeX, kGameExitButtonSizeY));
+    exitButton.setPosition(sf::Vector2f(kGameExitButtonCoordinateX, kGameExitButtonCoordinateY));
+    exitButton.setTexture(&exitButtonTexture);
+    exitButton.setOutlineThickness(1);
+    exitButton.setOutlineColor(sf::Color::White);
+
+    bool exitButtonChosen = false;
+    
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> rectangleShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            rectangleShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            rectangleShapeMatrix[i][j].setPosition(sf::Vector2f(kMatrixCoordinateX + j * kCellPixelSize, kMatrixCoordinateY + i * kCellPixelSize));
+            rectangleShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
+            rectangleShapeMatrix[i][j].setOutlineColor(sf::Color::White);
+            rectangleShapeMatrix[i][j].setOutlineThickness(1);
+        }
+    }
+
+    int numi = -1;
+    int numj = -1;
 
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
@@ -80,7 +134,67 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
+
         window.clear(sf::Color::White);
+
+        exitButton.setOutlineColor(sf::Color::White);
+        bool exitButtonChosen = false;
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                rectangleShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            }
+        }
+
+        numi = -1;
+        numj = -1;
+
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (rectangleShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                    numi = i;
+                    numj = j;
+                }
+            }
+        }
+
+        if (exitButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            exitButtonChosen = true;
+        }
+
+
+        if (numi >= 0 && numj >= 0) {
+            rectangleShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
+        }
+
+        if (exitButtonChosen) {
+            exitButton.setOutlineColor(sf::Color::Red);
+        }
+
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (exitButtonChosen) {
+                sf::Texture windowCurrentStateTexture(window.getSize());
+                windowCurrentStateTexture.update(window);
+                sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
+
+                if (QuitGame(window, windowCurrentStateSprite)) {
+                    window.close();
+                    continue;
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            }
+        }
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(rectangleShapeMatrix[i][j]);
+            }
+        }
+
+        window.draw(exitButton);
 
         window.display();
     }
