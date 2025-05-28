@@ -8,6 +8,12 @@ enum class CellStatus {
     ShootedShip = 4,
 };
 
+enum class ShootResult {
+    Miss = 1,
+    Hit = 2,
+    Kill = 3,
+};
+
 const int kSize = 10;
 } //namespace
 
@@ -23,12 +29,27 @@ public:
     CellStatus getStatus();
     void setStatus(const CellStatus status1);
 
-
+    Cell& operator=(const Cell& obj);
 };
 
 class Board {
 protected:
     Cell array[kSize][kSize];
 public:
-    
+    Board();
+    Board(const Board &other);
+    ~Board();
+
+    Board& operator=(const Board& obj);
+
+    //Cell getCell(int x, int y) const;
+    //void setCell(int x, int y);
+    void placeShip(int x, int y, int size, bool pozition);
+    bool isValidPlacement(int x, int y, int size, bool pozition);
+    ShootResult shoot(int x, int y);
+    bool isShipSunk(int x, int y);
+    bool allShipsSunk();
+    void clearBoard();
+
+    void autoPlaceShips();
 };
