@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 namespace {
-const int kDeffaultWindowLenght = 1200;
+const int kDeffaultWindowLenght = 1440;
 const int kDeffaultWindowHeight = 900;
 
 const unsigned int kMenuTitulCharacterSize = 100;
@@ -26,16 +26,36 @@ const int kMenuQuitGameButtonCoordinateY = 450;
 }  // namespace
 
 namespace SeaBattleExecutor {
+void StartGame(sf::RenderWindow& window) {
+    window.clear(sf::Color::White);
+
+    bool gameContinueExecution = true;
+
+    while (window.isOpen() && gameContinueExecution) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return;
+            }
+        }
+
+        window.clear(sf::Color::White);
+
+        window.display();
+    }
+}
+
+
 void Menu(sf::RenderWindow& window) {
     // загрузка картинки заднего фона в текстуру
-    sf::Texture menuBackground;
-    if (!menuBackground.loadFromFile("../images/background.jpg")) {
+    sf::Texture imageBackground;
+    if (!imageBackground.loadFromFile("../images/background.jpg")) {
         throw std::runtime_error("failed to open file");
     }
 
     // создание прямоугольника куда пихаем текстуру фона
     sf::RectangleShape backGround(sf::Vector2f(kDeffaultWindowLenght, kDeffaultWindowHeight));
-    backGround.setTexture(&menuBackground);
+    backGround.setTexture(&imageBackground);
     window.draw(backGround);
 
 
@@ -53,7 +73,7 @@ void Menu(sf::RenderWindow& window) {
     titul.setOutlineThickness(3);
     titul.setOutlineColor(sf::Color::White);
 
-    float titulCoordinateX = (kDeffaultWindowLenght / 2) - titul.getGlobalBounds().getCenter().x;
+    float titulCoordinateX = (window.getSize().x / 2) - titul.getGlobalBounds().getCenter().x;
     titul.setPosition(sf::Vector2f(titulCoordinateX, kMenuTitulCoordinateY));
 
     window.draw(titul);
@@ -64,7 +84,7 @@ void Menu(sf::RenderWindow& window) {
     startGameButtonText.setFillColor(sf::Color::Blue);
     startGameButtonText.setCharacterSize(kMenuButtonsCharacterSize);
 
-    float startGameButtonCoordinateX = (kDeffaultWindowLenght / 2) - startGameButtonText.getGlobalBounds().getCenter().x;
+    float startGameButtonCoordinateX = (window.getSize().x / 2) - startGameButtonText.getGlobalBounds().getCenter().x;
     startGameButtonText.setPosition(sf::Vector2f(startGameButtonCoordinateX, kMenuStartGameButtonCoordinateY));
 
     // создаём кнопку, запускающую игру
@@ -82,7 +102,7 @@ void Menu(sf::RenderWindow& window) {
     showRulesButtonText.setFillColor(sf::Color::Blue);
     showRulesButtonText.setCharacterSize(kMenuButtonsCharacterSize);
 
-    float showRulesButtonCoordinateX = (kDeffaultWindowLenght / 2) - showRulesButtonText.getGlobalBounds().getCenter().x;
+    float showRulesButtonCoordinateX = (window.getSize().x / 2) - showRulesButtonText.getGlobalBounds().getCenter().x;
     showRulesButtonText.setPosition(sf::Vector2f(showRulesButtonCoordinateX, kMenuShowRulesButtonCoordinateY));
 
     // создаём кнопку, показывающую правила игры
@@ -100,7 +120,7 @@ void Menu(sf::RenderWindow& window) {
     quitGameButtonText.setFillColor(sf::Color::Blue);
     quitGameButtonText.setCharacterSize(kMenuButtonsCharacterSize);
 
-    float quitGameButtonCoordinateX = (kDeffaultWindowLenght / 2) - quitGameButtonText.getGlobalBounds().getCenter().x;
+    float quitGameButtonCoordinateX = (window.getSize().x / 2) - quitGameButtonText.getGlobalBounds().getCenter().x;
     quitGameButtonText.setPosition(sf::Vector2f(quitGameButtonCoordinateX, kMenuQuitGameButtonCoordinateY));
 
     // создаём кнопку, закрывающую игру
@@ -125,7 +145,7 @@ void Menu(sf::RenderWindow& window) {
     bool menuContinueExecution = true;
     Action menuAction = Action::Wait;
 
-    while (menuContinueExecution) {
+    while (window.isOpen() && menuContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
@@ -159,7 +179,7 @@ void Menu(sf::RenderWindow& window) {
                 case Action::Wait:
                     break;
                 case Action::StartGame:
-                    std::cout << "Start Game\n";
+                    StartGame(window);
                     break;
                 case Action::ShowRules:
                     std::cout << "Show Rules\n";
@@ -185,20 +205,16 @@ void Menu(sf::RenderWindow& window) {
 
         window.display();
     }
-
-    // window.display();
 }
 
 void RunApplication() {
-    sf::RenderWindow window(sf::VideoMode({kDeffaultWindowLenght, kDeffaultWindowHeight}), "Sea Battle");
+    sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), "Sea Battle", sf::State::Fullscreen);
     
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>())
                 window.close();
         }
-
-        // window.clear(sf::Color(186, 206, 219));
 
         Menu(window);
 
