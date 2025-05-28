@@ -9,6 +9,9 @@
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+#include <string>
+#include <fstream>
+
 
 namespace {
 const int kDeffaultWindowLenght = 1440;
@@ -24,6 +27,14 @@ const int kMenuStartGameButtonCoordinateY = 250;
 const int kMenuShowRulesButtonCoordinateY = 350;
 const int kMenuQuitGameButtonCoordinateY = 450;
 
+// константы для окна с правилами
+const unsigned int kRulesWindowSizeX = 900;
+const unsigned int kRulesWindowSizeY = 500;
+
+const unsigned int kRulesCharacterSize = 20;
+
+const int kRulesTextCoordinateY = 10;
+const int kRulesButtonCoordinateY = 400;
 
 // константы для окна проверки выхода
 const unsigned int kCheckWindowSizeX = 600;
@@ -34,7 +45,25 @@ const unsigned int kExitCheckCharacterSize = 40;
 const int kExitCheckQuestionCoordinateY = 50;
 const int kExitCheckButtonsCoordinateY = 150;
 
+std::string GetRulesFromFile() {
+    std::string text;
 
+    std::ifstream rulesFile("../images/rules.txt");
+
+    if (!rulesFile) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    std::string line;
+
+    while (std::getline(rulesFile, line)) {
+        text += line;
+        text += '\n';
+    }
+
+    rulesFile.close();
+    return text;
+}
 }  // namespace
 
 namespace SeaBattleExecutor {
@@ -56,6 +85,93 @@ void StartGame(sf::RenderWindow& window) {
         window.display();
     }
 }
+
+void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    // создание окна с правилами
+    sf::RenderTexture rulesTexture(sf::Vector2u(kRulesWindowSizeX, kRulesWindowSizeY));
+
+    sf::Sprite rulesSprite(rulesTexture.getTexture());
+    rulesSprite.setPosition(sf::Vector2f((window.getSize().x - kRulesWindowSizeX) / 2, (window.getSize().y - kRulesWindowSizeY) / 2));
+
+    // загружаем шрифт
+    sf::Font helveticaFont;
+    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Text rules(helveticaFont);
+    rules.setString(GetRulesFromFile());
+    rules.setFillColor(sf::Color::Blue);
+    rules.setCharacterSize(kRulesCharacterSize);
+    rules.setOutlineColor(sf::Color::White);
+
+    float rulesCoordinateX = (rulesTexture.getSize().x / 2) - rules.getGlobalBounds().getCenter().x;
+    rules.setPosition(sf::Vector2f(rulesCoordinateX, kRulesTextCoordinateY));
+
+
+    // создаём надпись кнопки ок
+    sf::Text okButtonText(helveticaFont, sf::String("Ok"));
+    okButtonText.setFillColor(sf::Color::Blue);
+    okButtonText.setCharacterSize(kExitCheckCharacterSize);
+
+    float okButtonCoordinateX = (rulesTexture.getSize().x / 2) - okButtonText.getGlobalBounds().getCenter().x;
+    okButtonText.setPosition(sf::Vector2f(okButtonCoordinateX, kRulesButtonCoordinateY));
+
+    // создаём кнопку да
+    sf::RectangleShape okButton;
+    okButton.setPosition(okButtonText.getPosition());
+    float okButtonSizeX = (okButtonText.getGlobalBounds().getCenter().x - okButtonText.getPosition().x) * 2;
+    float okButtonSizeY = (okButtonText.getGlobalBounds().getCenter().y - okButtonText.getPosition().y) * 2;
+
+    okButton.setSize(sf::Vector2f(okButtonSizeX, okButtonSizeY));
+    okButton.setFillColor(sf::Color(0, 0, 0, 0));
+
+    int num = 0;
+
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return;
+            }
+        }
+
+        window.clear();
+        okButtonText.setFillColor(sf::Color::Blue);
+        num = 0;
+
+        if (okButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - rulesSprite.getPosition())) {
+            okButtonText.setFillColor(sf::Color::Red);
+            num = 1;
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            switch (num) {
+                case 0:
+                    break;
+                case 1:
+                    return;
+                    break;
+            }
+        }
+
+        rulesTexture.clear(sf::Color::White);
+        rulesTexture.draw(rules);
+
+        rulesTexture.draw(okButton);
+        rulesTexture.draw(okButtonText);
+
+        rulesTexture.display();
+
+        window.draw(windowCurrentStateSprite);
+        window.draw(rulesSprite);
+
+        window.display();
+    }
+}
+
 
 
 bool QuitGame(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite) {
@@ -265,6 +381,9 @@ void Menu(sf::RenderWindow& window) {
 
     bool menuContinueExecution = true;
     Action menuAction = Action::Wait;
+    sf::Texture windowCurrentStateTexture(window.getSize());
+    windowCurrentStateTexture.update(window);
+    sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
 
     while (window.isOpen() && menuContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
@@ -305,7 +424,25 @@ void Menu(sf::RenderWindow& window) {
                     StartGame(window);
                     break;
                 case Action::ShowRules:
-                    std::cout << "Show Rules\n";
+                    showRulesButtonText.setFillColor(sf::Color::Blue);
+                    window.draw(backGround);
+                    window.draw(titul);
+
+                    window.draw(startGameButton);
+                    window.draw(startGameButtonText);
+
+                    window.draw(showRulesButton);
+                    window.draw(showRulesButtonText);
+                    
+                    window.draw(quitGameButton);
+                    window.draw(quitGameButtonText);
+
+                    windowCurrentStateTexture.update(window);
+                    windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
+                    
+                    ShowRules(window, windowCurrentStateSprite);
+
+                    std::this_thread::sleep_for(std::chrono::milliseconds(150));
                     break;
                 case Action::QuitGame:
                     quitGameButtonText.setFillColor(sf::Color::Blue);
@@ -321,10 +458,8 @@ void Menu(sf::RenderWindow& window) {
                     window.draw(quitGameButton);
                     window.draw(quitGameButtonText);
 
-                    sf::Texture windowCurrentStateTexture(window.getSize());
                     windowCurrentStateTexture.update(window);
-
-                    sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
+                    windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
 
                     if (QuitGame(window, windowCurrentStateSprite)) {
                         window.close();

@@ -13,7 +13,7 @@ enum class Action {
 void Menu(sf::RenderWindow& window);
 
 void StartGame(sf::RenderWindow& window);
-void ShowRules();
+void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite);
 bool QuitGame(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite);
 
 void StartPreparations();
