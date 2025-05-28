@@ -19,3 +19,7 @@ find_package(SFML REQUIRED COMPONENTS Window)
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
 target_link_libraries(SeaBattle PRIVATE SFML::Graphics)
+
+if(ENABLE_DEBUG)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g)
+endif()
