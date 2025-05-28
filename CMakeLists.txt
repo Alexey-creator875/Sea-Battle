@@ -21,3 +21,7 @@ add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
 target_link_libraries(SeaBattle PRIVATE SFML::Graphics)
 target_link_libraries(${project} GameClasses)
+
+if(ENABLE_DEBUG)
+    target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g)
+endif()

@@ -3,11 +3,18 @@
 #include <SFML/Graphics.hpp>
 
 namespace SeaBattleExecutor {
+enum class Action {
+    Wait,
+    StartGame,
+    ShowRules,
+    QuitGame,
+};
+
 void Menu(sf::RenderWindow& window);
 
-void StartGame();
-void ShowRules();
-void QuitGame();
+void StartGame(sf::RenderWindow& window);
+void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite);
+bool QuitGame(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite);
 
 void StartPreparations();
 void Fight();
