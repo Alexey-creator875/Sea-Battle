@@ -16,6 +16,8 @@ set(HEADERS
 find_package(SFML REQUIRED COMPONENTS Graphics)
 find_package(SFML REQUIRED COMPONENTS Window)
 
+add_subdirectory(GameClasses)
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
 target_link_libraries(SeaBattle PRIVATE SFML::Graphics)
+target_link_libraries(${project} GameClasses)

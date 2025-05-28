@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-set(project "classes")
+set(project "GameClasses")
 project(${project})
 
 set(CMAKE_CXX_STANDARD 17)
