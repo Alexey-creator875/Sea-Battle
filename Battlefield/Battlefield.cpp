@@ -20,4 +20,26 @@ void randomPlaceShips(Board& obj) {
     }
 }
 
+ShootResult randomShoot(Board& obj) {
+    int randX = std::rand() % 10;
+    int randY = std::rand() % 10;
+    while (obj.getCell(randX, randY) == CellStatus::ShootedEmpty || obj.getCell(randX, randY) == CellStatus::ShootedShip) {
+        randX = std::rand() % 10;
+        randY = std::rand() % 10;
+    }
+    return obj.shoot(randX, randY);
+}
+
+// ShootResult smartShoot(Board& obj) {
+// }
+
+// bool checker = false;
+// Board playerBoard;
+// void programmShoot() {
+//     if (!checker) {
+//         if (randomShoot(playerBoard) == ShootResult::Hit) {
+//             checker = true;
+//         }
+//     }
+// }
 
