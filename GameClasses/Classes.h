@@ -32,6 +32,26 @@ public:
     Cell& operator=(const Cell& obj);
 };
 
+class Ship {
+protected:
+    int x;
+    int y;
+    int size;
+    bool pozition = true;
+public:
+    Ship();
+    Ship(int x1, int y1, int size1, bool pozition1);
+    Ship(const Ship &other);
+    ~Ship();
+
+    int getX();
+    int getY();
+    int getSize();
+    bool getPozition();
+
+    Ship& operator=(const Ship& obj);
+};
+
 class Board {
 protected:
     Cell array[kSize][kSize];
@@ -44,8 +64,8 @@ public:
 
     //Cell getCell(int x, int y) const;
     //void setCell(int x, int y);
-    void placeShip(int x, int y, int size, bool pozition);
-    bool isValidPlacement(int x, int y, int size, bool pozition);
+    void placeShip(Ship s);
+    bool isValidPlacement(Ship s);
     ShootResult shoot(int x, int y);
     bool isShipSunk(int x, int y);
     bool allShipsSunk();

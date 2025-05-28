@@ -22,6 +22,38 @@ Cell& Cell::operator=(const Cell& obj) {
     return *this;
 }
 
+//методы для корабля
+Ship::Ship() {}
+Ship::Ship(int x1, int y1, int size1, bool pozition1) {
+    x = x1;
+    y = y1;
+    size = size1;
+    pozition = pozition1;
+}
+Ship::Ship(const Ship &other) {
+    x = other.x;
+    y = other.y;
+    size = other.size;
+    pozition = other.pozition;
+}
+Ship::~Ship() {}
+
+int Ship::getX() { return x; }
+int Ship::getY() { return y; }
+int Ship::getSize() { return size; }
+bool Ship::getPozition() { return pozition; }
+
+Ship& Ship::operator=(const Ship& obj) {
+    if (this == &obj) {
+        return *this;
+    }
+    x = obj.x;
+    y = obj.y;
+    size = obj.size;
+    pozition = obj.pozition;
+    return *this;
+}
+
 //методы для поля
 Board::Board() {}
 Board::Board(const Board &other) {
@@ -50,7 +82,11 @@ Board& Board::operator=(const Board& obj) {
 
 //pozition = 1 - горизонтально
 //pozition = 0 - вертикально
-bool Board::isValidPlacement(int x, int y, int size, bool pozition) {
+bool Board::isValidPlacement(Ship s) {
+    int x = s.getX();
+    int y = s.getY();
+    int size = s.getSize();
+    bool pozition = s.getPozition();
     bool flag = true;
     if (pozition) {
         flag = 0 <= y && y < kSize && 0 <= x && x + size <= kSize;
@@ -81,8 +117,12 @@ bool Board::isValidPlacement(int x, int y, int size, bool pozition) {
     }
     return flag;
 }
-void Board::placeShip(int x, int y, int size, bool pozition) {
-    if (!isValidPlacement(x, y, size, pozition)) { return; }
+void Board::placeShip(Ship s) {
+    int x = s.getX();
+    int y = s.getY();
+    int size = s.getSize();
+    bool pozition = s.getPozition();
+    if (!isValidPlacement(s)) { return; }
     if (pozition) {
         for (int i = x; i < x + size; ++i) {
             array[i][y] = CellStatus::Ship;
@@ -195,18 +235,26 @@ bool Board::allShipsSunk() {
     return flag;
 }
 
+void Board::clearBoard() {
+    for (int i = 0; i < kSize; ++i) {
+        for (int j = 0; j < kSize; ++j) {
+            array[i][j] = Cell(CellStatus::Empty);
+        }
+    }
+}
+
 void Board::autoPlaceShips() {
-    Board::placeShip(0, 5, 1, true);
-    Board::placeShip(2, 4, 1, true);
-    Board::placeShip(4, 3, 1, true);
-    Board::placeShip(9, 0, 1, true);
+    Board::placeShip(Ship(5, 0, 1, true));
+    Board::placeShip(Ship(4, 2, 1, true));
+    Board::placeShip(Ship(3, 4, 1, true));
+    Board::placeShip(Ship(0, 9, 1, true));
 
-    Board::placeShip(1, 1, 2, true);
-    Board::placeShip(7, 0, 2, true);
-    Board::placeShip(2, 8, 2, true);
+    Board::placeShip(Ship(1, 1, 2, true));
+    Board::placeShip(Ship(0, 7, 2, true));
+    Board::placeShip(Ship(8, 2, 2, true));
 
-    Board::placeShip(9, 4, 3, true);
-    Board::placeShip(4, 8, 3, false);
+    Board::placeShip(Ship(4, 9, 3, true));
+    Board::placeShip(Ship(8, 4, 3, false));
 
-    Board::placeShip(6, 3, 4, true);
+    Board::placeShip(Ship(3, 6, 4, true));
 }
