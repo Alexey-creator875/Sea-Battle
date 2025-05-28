@@ -12,7 +12,7 @@ enum class Action {
 
 void Menu(sf::RenderWindow& window);
 
-void StartGame();
+void StartGame(sf::RenderWindow& window);
 void ShowRules();
 void QuitGame();
 
