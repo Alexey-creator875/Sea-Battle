@@ -62,8 +62,8 @@ public:
 
     Board& operator=(const Board& obj);
 
-    //Cell getCell(int x, int y) const;
-    //void setCell(int x, int y);
+    CellStatus getCell(int x, int y);
+    void setCell(int x, int y, CellStatus obj);
     void placeShip(Ship s);
     bool isValidPlacement(Ship s);
     ShootResult shoot(int x, int y);

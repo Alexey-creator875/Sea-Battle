@@ -77,8 +77,8 @@ Board& Board::operator=(const Board& obj) {
     return *this;
 }
 
-//Cell Board::getCell(int x, int y) const { return array[x][y]; }
-//void Board::setCell(int x, int y) {}
+CellStatus Board::getCell(int x, int y) { return array[x][y].getStatus(); }
+void Board::setCell(int x, int y, CellStatus obj) { array[x][y].setStatus(obj); }
 
 //pozition = 1 - горизонтально
 //pozition = 0 - вертикально
