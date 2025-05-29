@@ -98,7 +98,7 @@ void StartGame(sf::RenderWindow& window) {
 
     // закгрузка текстуры крестика
     sf::Texture crossTexture;
-    if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+    if (!crossTexture.loadFromFile("../images/cross.webp.png")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -127,14 +127,6 @@ void StartGame(sf::RenderWindow& window) {
     // создание борда для игрока
     Board playerBoard;
     playerBoard.autoPlaceShips();
-
-    for (size_t i = 0; i < kArraySize; ++i) {
-        for (size_t j = 0; j < kArraySize; ++j) {
-            std::cout << static_cast<int>(playerBoard.getCell(i, j)) << ' ';
-        }
-
-        std::cout << '\n';
-    }
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -190,41 +182,13 @@ void StartGame(sf::RenderWindow& window) {
         exitButton.setOutlineColor(sf::Color::White);
         bool exitButtonChosen = false;
 
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                if (robotShapeMatrix[i][j].getFillColor() != sf::Color::Transparent) {
-                    robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
-                }
-                
-            }
-        }
-
-        numi = -1;
-        numj = -1;
-
-
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-                    numi = i;
-                    numj = j;
-                }
-            }
-        }
-
         if (exitButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             exitButtonChosen = true;
-        }
-
-
-        if (numi >= 0 && numj >= 0) {
-            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
         }
 
         if (exitButtonChosen) {
             exitButton.setOutlineColor(sf::Color::Red);
         }
-
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (exitButtonChosen) {
@@ -241,24 +205,77 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        // замена клеток поля робота
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (!robotBoard.isShooted(i, j)) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                    continue;
+                }
+
+                if (robotBoard.getCell(i, j) == CellStatus::ShootedEmpty) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    robotShapeMatrix[i][j].setTexture(&dotTexture);
+                }
+
+                if (robotBoard.getCell(i, j) == CellStatus::ShootedShip) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    robotShapeMatrix[i][j].setTexture(&crossTexture);
+                }
+            }
+        }
+
+        // замена клеток поля игрока
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (!playerBoard.isShooted(i, j)) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                    continue;
+                }
+
+                if (playerBoard.getCell(i, j) == CellStatus::ShootedEmpty) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    playerShapeMatrix[i][j].setTexture(&dotTexture);
+                }
+
+                if (playerBoard.getCell(i, j) == CellStatus::ShootedShip) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    playerShapeMatrix[i][j].setTexture(&crossTexture);
+                }
+            }
+        }
+
+        numi = -1;
+        numj = -1;
+
+        if (playerMove) {
+            for (size_t i = 0; i < kArraySize; ++i) {
+                for (size_t j = 0; j < kArraySize; ++j) {
+                    if (robotBoard.isShooted(i, j)) {
+                        continue;
+                    }
+
+                    if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                        numi = i;
+                        numj = j;
+                    }
+                }
+            }
+        }
+
+        // if (!playerMove) {
+        //     if (robotBoard.shoot())
+        // }
+
+
+        if (playerMove && numi >= 0 && numj >= 0) {
+            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
+        }
+
+        if (playerMove && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (numi >= 0 && numj >= 0) {
-                switch(robotBoard.shoot(numi, numj)) {
-                    case ShootResult::Miss:
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        robotShapeMatrix[numi][numj].setTexture(&dotTexture);
-                        playerMove = false;
-                        break;
-                    case ShootResult::Hit:
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
-                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        break;
-                    case ShootResult::Kill:
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
-                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        break;
+                if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
+                    playerMove = false;
                 }
             }
                 
