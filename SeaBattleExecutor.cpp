@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 
 #include "GameClasses/Classes.h"
+#include "Battlefield/Battlefield.h"
 
 #include <vector>
 #include <iostream>
@@ -98,7 +99,7 @@ void StartGame(sf::RenderWindow& window) {
 
     // закгрузка текстуры крестика
     sf::Texture crossTexture;
-    if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+    if (!crossTexture.loadFromFile("../images/cross.webp.png")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -126,15 +127,8 @@ void StartGame(sf::RenderWindow& window) {
     
     // создание борда для игрока
     Board playerBoard;
-    playerBoard.autoPlaceShips();
-
-    for (size_t i = 0; i < kArraySize; ++i) {
-        for (size_t j = 0; j < kArraySize; ++j) {
-            std::cout << static_cast<int>(playerBoard.getCell(i, j)) << ' ';
-        }
-
-        std::cout << '\n';
-    }
+    // playerBoard.autoPlaceShips();
+    randomPlaceShips(playerBoard);
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -158,7 +152,8 @@ void StartGame(sf::RenderWindow& window) {
 
     // создание борда для робота
     Board robotBoard;
-    robotBoard.autoPlaceShips();
+    // robotBoard.autoPlaceShips();
+    randomPlaceShips(robotBoard);
 
     // создание массива шейпов для робота
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> robotShapeMatrix;
@@ -176,6 +171,9 @@ void StartGame(sf::RenderWindow& window) {
     int numi = -1;
     int numj = -1;
 
+    int robotShootX = 0;
+    int robotShootY = 0;
+
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -184,47 +182,23 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
+        if (playerBoard.allShipsSunk() || robotBoard.allShipsSunk()) {
+            gameContinueExecution = false;
+            continue;
+        }
 
         window.clear(sf::Color::White);
 
         exitButton.setOutlineColor(sf::Color::White);
         bool exitButtonChosen = false;
 
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                if (robotShapeMatrix[i][j].getFillColor() != sf::Color::Transparent) {
-                    robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
-                }
-                
-            }
-        }
-
-        numi = -1;
-        numj = -1;
-
-
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-                    numi = i;
-                    numj = j;
-                }
-            }
-        }
-
         if (exitButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             exitButtonChosen = true;
-        }
-
-
-        if (numi >= 0 && numj >= 0) {
-            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
         }
 
         if (exitButtonChosen) {
             exitButton.setOutlineColor(sf::Color::Red);
         }
-
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (exitButtonChosen) {
@@ -241,28 +215,88 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            if (numi >= 0 && numj >= 0) {
-                switch(robotBoard.shoot(numi, numj)) {
-                    case ShootResult::Miss:
-                        robotShapeMatrix[numi][numj].setTexture(&dotTexture);
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        playerMove = false;
-                        break;
-                    case ShootResult::Hit:
-                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
-                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        break;
-                    case ShootResult::Kill:
-                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
-                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
-                        break;
+        // замена клеток поля робота
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (!robotBoard.isShooted(i, j)) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                    continue;
+                }
+
+                if (robotBoard.getCell(i, j) == CellStatus::ShootedEmpty) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    robotShapeMatrix[i][j].setTexture(&dotTexture);
+                }
+
+                if (robotBoard.getCell(i, j) == CellStatus::ShootedShip) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    robotShapeMatrix[i][j].setTexture(&crossTexture);
                 }
             }
-                
         }
+
+        // замена клеток поля игрока
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (!playerBoard.isShooted(i, j)) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                    continue;
+                }
+
+                if (playerBoard.getCell(i, j) == CellStatus::ShootedEmpty) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    playerShapeMatrix[i][j].setTexture(&dotTexture);
+                }
+
+                if (playerBoard.getCell(i, j) == CellStatus::ShootedShip) {
+                    playerShapeMatrix[i][j].setFillColor(sf::Color::White);
+                    playerShapeMatrix[i][j].setTexture(&crossTexture);
+                }
+            }
+        }
+
+        numi = -1;
+        numj = -1;
+
+        if (playerMove) {
+            for (size_t i = 0; i < kArraySize; ++i) {
+                for (size_t j = 0; j < kArraySize; ++j) {
+                    if (robotBoard.isShooted(i, j)) {
+                        continue;
+                    }
+
+                    if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                        numi = i;
+                        numj = j;
+                    }
+                }
+            }
+        }
+
+        if (playerMove && numi >= 0 && numj >= 0) {
+            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
+        }
+
+        if (!playerMove) {
+            if (randomShoot(playerBoard, robotShootX, robotShootY) == ShootResult::Miss) {
+                playerMove = true;
+            }
+        } else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (numi >= 0 && numj >= 0) {
+                if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
+                    playerMove = false;
+                }
+            }
+        }
+
+        // if (playerMove && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        //     if (numi >= 0 && numj >= 0) {
+        //         if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
+        //             playerMove = false;
+        //         }
+        //     }
+                
+        // }
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
@@ -280,6 +314,17 @@ void StartGame(sf::RenderWindow& window) {
 
         window.display();
     }
+
+    if (robotBoard.allShipsSunk()) {
+        std::cout << "Player win\n";
+        return;
+    }
+
+    if (playerBoard.allShipsSunk()) {
+        std::cout << "Player win\n";
+        return;
+    }
+
 }
 
 void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite) {
@@ -618,6 +663,7 @@ void Menu(sf::RenderWindow& window) {
                     break;
                 case Action::StartGame:
                     StartGame(window);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
                     break;
                 case Action::ShowRules:
                     showRulesButtonText.setFillColor(sf::Color::Blue);

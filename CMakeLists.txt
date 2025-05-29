@@ -14,14 +14,14 @@ set(HEADERS
 )
 
 add_subdirectory(GameClasses)
-# add_subdirectory(Battlefield)
+add_subdirectory(Battlefield)
 
 find_package(SFML REQUIRED COMPONENTS Graphics Window)
 
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
 target_link_libraries(SeaBattle GameClasses)
-# target_link_libraries(SeaBattle Battlefield)
+target_link_libraries(SeaBattle Battlefield)
 target_link_libraries(SeaBattle SFML::Graphics)
 target_link_libraries(SeaBattle SFML::Window)
 
