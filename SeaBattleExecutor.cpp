@@ -69,6 +69,15 @@ const unsigned int kGameExitButtonSizeY = 50;
 const int kGameExitButtonCoordinateX = 40;
 const int kGameExitButtonCoordinateY = 40;
 
+// константы для окна вывода результатов игры
+
+const unsigned int kResultsWindowSizeX = 600;
+const unsigned int kResultsWindowSizeY = 300;
+
+const unsigned int kResultsWindowCharacterSize = 40;
+
+const int kResultsTextCoordinateY = 50;
+const int kReturnButtonCoordinateY = 150;
 
 
 std::string GetRulesFromFile() {
@@ -93,6 +102,96 @@ std::string GetRulesFromFile() {
 }  // namespace
 
 namespace SeaBattleExecutor {
+void ShowResults(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, bool playerWin) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+
+    // создание окна с результатами
+    sf::RenderTexture resultsTexture(sf::Vector2u(kCheckWindowSizeX, kCheckWindowSizeY));
+
+    sf::Sprite resultsSprite(resultsTexture.getTexture());
+    resultsSprite.setPosition(sf::Vector2f((window.getSize().x - kCheckWindowSizeX) / 2, (window.getSize().y - kCheckWindowSizeY) / 2));
+
+    // загружаем шрифт
+    sf::Font helveticaFont;
+    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Text text(helveticaFont);
+    if (playerWin) {
+        text.setString(sf::String("My congrats! You won"));
+    } else {
+        text.setString(sf::String("Unluck... You lost"));
+    }
+    
+    text.setFillColor(sf::Color::Blue);
+    text.setCharacterSize(kResultsWindowCharacterSize);
+    text.setOutlineColor(sf::Color::White);
+
+    float questionCoordinateX = (resultsTexture.getSize().x / 2) - text.getGlobalBounds().getCenter().x;
+    text.setPosition(sf::Vector2f(questionCoordinateX, kResultsTextCoordinateY));
+
+
+    // создаём надпись кнопки вернуться в меню
+    sf::Text returnButtonText(helveticaFont, sf::String("Ok"));
+    returnButtonText.setFillColor(sf::Color::Blue);
+    returnButtonText.setCharacterSize(kResultsWindowCharacterSize);
+
+    float returnButtonCoordinateX = (resultsTexture.getSize().x / 2) - returnButtonText.getGlobalBounds().getCenter().x;
+    returnButtonText.setPosition(sf::Vector2f(returnButtonCoordinateX, kReturnButtonCoordinateY));
+
+    // создаём кнопку да
+    sf::RectangleShape returnButton;
+    returnButton.setPosition(returnButtonText.getPosition());
+    float returnButtonSizeX = (returnButtonText.getGlobalBounds().getCenter().x - returnButtonText.getPosition().x) * 2;
+    float returnButtonSizeY = (returnButtonText.getGlobalBounds().getCenter().y - returnButtonText.getPosition().y) * 2;
+
+    returnButton.setSize(sf::Vector2f(returnButtonSizeX, returnButtonSizeY));
+    returnButton.setFillColor(sf::Color(0, 0, 0, 0));
+
+    bool returnButtonChosen = false;
+
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return;
+            }
+        }
+
+        window.clear();
+        returnButtonText.setFillColor(sf::Color::Blue);
+        returnButtonChosen = false;
+
+
+        if (returnButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - resultsSprite.getPosition())) {
+            returnButtonText.setFillColor(sf::Color::Red);
+            returnButtonChosen = true;
+
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (returnButtonChosen) {
+                return;
+            }
+        }
+
+        resultsTexture.clear(sf::Color(167, 236, 255));
+        resultsTexture.draw(text);
+
+        resultsTexture.draw(returnButton);
+        resultsTexture.draw(returnButtonText);
+
+        resultsTexture.display();
+
+        window.draw(windowCurrentStateSprite);
+        window.draw(resultsSprite);
+
+        window.display();
+    }
+}
+
+
 void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
     bool playerMove = true;
@@ -280,6 +379,8 @@ void StartGame(sf::RenderWindow& window) {
         if (!playerMove) {
             if (randomShoot(playerBoard, robotShootX, robotShootY) == ShootResult::Miss) {
                 playerMove = true;
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
             }
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (numi >= 0 && numj >= 0) {
@@ -288,15 +389,6 @@ void StartGame(sf::RenderWindow& window) {
                 }
             }
         }
-
-        // if (playerMove && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-        //     if (numi >= 0 && numj >= 0) {
-        //         if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
-        //             playerMove = false;
-        //         }
-        //     }
-                
-        // }
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
@@ -315,16 +407,16 @@ void StartGame(sf::RenderWindow& window) {
         window.display();
     }
 
+    sf::Texture windowCurrentStateTexture(window.getSize());
+    windowCurrentStateTexture.update(window);
+    sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
+
     if (robotBoard.allShipsSunk()) {
-        std::cout << "Player win\n";
+        ShowResults(window, windowCurrentStateSprite, true);
         return;
     }
 
-    if (playerBoard.allShipsSunk()) {
-        std::cout << "Player win\n";
-        return;
-    }
-
+    ShowResults(window, windowCurrentStateSprite, false);
 }
 
 void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite) {
