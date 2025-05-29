@@ -48,6 +48,28 @@ const unsigned int kExitCheckCharacterSize = 40;
 const int kExitCheckQuestionCoordinateY = 50;
 const int kExitCheckButtonsCoordinateY = 150;
 
+// константы для игры
+const unsigned int kArraySize = 10;
+
+const int kPlayerMatrixCoordinateX = 200;
+const int kPlayerMatrixCoordinateY = 150;
+
+const int kRobotMatrixCoordinateX = 700;
+const int kRobotMatrixCoordinateY = 150;
+
+const int kCellPixelSize = 30;
+const int kCellOutlineThickness = 2;
+
+// константы для кнопки выхода из игры
+
+const unsigned int kGameExitButtonSizeX = 50;
+const unsigned int kGameExitButtonSizeY = 50;
+
+const int kGameExitButtonCoordinateX = 40;
+const int kGameExitButtonCoordinateY = 40;
+
+
+
 std::string GetRulesFromFile() {
     std::string text;
 
@@ -73,6 +95,80 @@ namespace SeaBattleExecutor {
 void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
 
+    // закгрузка текстуры крестика
+    sf::Texture crossTexture;
+    if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры для кнопки выхода из игры
+    sf::Texture exitButtonTexture;
+    if (!exitButtonTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // создание кнопки для выхода из игры
+    sf::RectangleShape exitButton;
+    exitButton.setSize(sf::Vector2f(kGameExitButtonSizeX, kGameExitButtonSizeY));
+    exitButton.setPosition(sf::Vector2f(kGameExitButtonCoordinateX, kGameExitButtonCoordinateY));
+    exitButton.setTexture(&exitButtonTexture);
+    exitButton.setOutlineThickness(1);
+    exitButton.setOutlineColor(sf::Color::White);
+
+    bool exitButtonChosen = false;
+    
+    // создание борда для игрока
+    Board playerBoard;
+    playerBoard.autoPlaceShips();
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            std::cout << static_cast<int>(playerBoard.getCell(i, j)) << ' ';
+        }
+
+        std::cout << '\n';
+    }
+
+    // создание массива шейпов для игрока
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            playerShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            playerShapeMatrix[i][j].setPosition(sf::Vector2f(kPlayerMatrixCoordinateX + j * kCellPixelSize + (j + 1) * kCellOutlineThickness, kPlayerMatrixCoordinateY + i * kCellPixelSize + (i + 1) * kCellOutlineThickness));
+            playerShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
+            playerShapeMatrix[i][j].setOutlineThickness(kCellOutlineThickness);
+
+            if (playerBoard.getCell(i, j) == CellStatus::Ship) {
+                playerShapeMatrix[i][j].setOutlineColor(sf::Color::Red);
+            }
+
+            if (playerBoard.getCell(i, j) == CellStatus::Empty) {
+                playerShapeMatrix[i][j].setOutlineColor(sf::Color::Transparent);
+            }
+        }
+    }
+
+    // создание борда для робота
+    Board robotBoard;
+    robotBoard.autoPlaceShips();
+
+    // создание массива шейпов для робота
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> robotShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            robotShapeMatrix[i][j].setPosition(sf::Vector2f(kRobotMatrixCoordinateX + j * kCellPixelSize + (j + 1) * kCellOutlineThickness, kRobotMatrixCoordinateY + i * kCellPixelSize + (i + 1) * kCellOutlineThickness));
+            robotShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
+            robotShapeMatrix[i][j].setOutlineColor(sf::Color::White);
+            robotShapeMatrix[i][j].setOutlineThickness(1);
+        }
+    }
+
+    int numi = -1;
+    int numj = -1;
+
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -83,6 +179,77 @@ void StartGame(sf::RenderWindow& window) {
 
 
         window.clear(sf::Color::White);
+
+        exitButton.setOutlineColor(sf::Color::White);
+        bool exitButtonChosen = false;
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            }
+        }
+
+        numi = -1;
+        numj = -1;
+
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                    numi = i;
+                    numj = j;
+                }
+            }
+        }
+
+        if (exitButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            exitButtonChosen = true;
+        }
+
+
+        if (numi >= 0 && numj >= 0) {
+            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
+        }
+
+        if (exitButtonChosen) {
+            exitButton.setOutlineColor(sf::Color::Red);
+        }
+
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (exitButtonChosen) {
+                sf::Texture windowCurrentStateTexture(window.getSize());
+                windowCurrentStateTexture.update(window);
+                sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
+
+                if (QuitGame(window, windowCurrentStateSprite)) {
+                    window.close();
+                    continue;
+                }
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            }
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (numi >= 0 && numj >= 0) {
+                // robotBoard.shoot()
+            }
+        }
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(playerShapeMatrix[i][j]);
+            }
+        }
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(robotShapeMatrix[i][j]);
+            }
+        }
+
+        window.draw(exitButton);
 
         window.display();
     }
