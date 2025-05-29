@@ -190,6 +190,15 @@ ShootResult Board::shoot(int x, int y) {
             }
             ++i;
         }
+        if (checkCoordinates(i, y) && array[i][y].getStatus() == CellStatus::Empty) {
+            array[i][y] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(i, y - 1) && array[i][y - 1].getStatus() == CellStatus::Empty) {
+            array[i][y - 1] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(i, y + 1) && array[i][y + 1].getStatus() == CellStatus::Empty) {
+            array[i][y + 1] = CellStatus::ShootedEmpty;
+        }
         i = x;
         while (checkCoordinates(i, y) && (array[i][y].getStatus() != CellStatus::Empty && array[i][y].getStatus() != CellStatus::ShootedEmpty)) {
             if (checkCoordinates(i, y - 1) && array[i][y - 1].getStatus() == CellStatus::Empty) {
@@ -200,7 +209,15 @@ ShootResult Board::shoot(int x, int y) {
             }
             --i;
         }
-
+        if (checkCoordinates(i, y) && array[i][y].getStatus() == CellStatus::Empty) {
+            array[i][y] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(i, y - 1) && array[i][y - 1].getStatus() == CellStatus::Empty) {
+            array[i][y - 1] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(i, y + 1) && array[i][y + 1].getStatus() == CellStatus::Empty) {
+            array[i][y + 1] = CellStatus::ShootedEmpty;
+        }
         int j = y;
         while (checkCoordinates(x, j) && (array[x][j].getStatus() != CellStatus::Empty && array[x][j].getStatus() != CellStatus::ShootedEmpty)) {
             if (checkCoordinates(x - 1, j) && array[x - 1][j].getStatus() == CellStatus::Empty) {
@@ -211,6 +228,15 @@ ShootResult Board::shoot(int x, int y) {
             }
             ++j;
         }
+        if (checkCoordinates(x - 1, j) && array[x - 1][j].getStatus() == CellStatus::Empty) {
+            array[x - 1][j] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(x + 1, j) && array[x + 1][j].getStatus() == CellStatus::Empty) {
+            array[x + 1][j] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(x, j) && array[x][j].getStatus() == CellStatus::Empty) {
+            array[x][j] = CellStatus::ShootedEmpty;
+        }
         j = y;
         while (checkCoordinates(x, j) && (array[x][j].getStatus() != CellStatus::Empty && array[x][j].getStatus() != CellStatus::ShootedEmpty)) {
             if (checkCoordinates(x - 1, j) && array[x - 1][j].getStatus() == CellStatus::Empty) {
@@ -220,6 +246,15 @@ ShootResult Board::shoot(int x, int y) {
                 array[x + 1][j] = CellStatus::ShootedEmpty;
             }
             --j;
+        }
+        if (checkCoordinates(x - 1, j) && array[x - 1][j].getStatus() == CellStatus::Empty) {
+            array[x - 1][j] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(x + 1, j) && array[x + 1][j].getStatus() == CellStatus::Empty) {
+            array[x + 1][j] = CellStatus::ShootedEmpty;
+        }
+        if (checkCoordinates(x, j) && array[x][j].getStatus() == CellStatus::Empty) {
+            array[x][j] = CellStatus::ShootedEmpty;
         }
 
         return ShootResult::Kill;
