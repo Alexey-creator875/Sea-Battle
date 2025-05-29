@@ -94,10 +94,17 @@ std::string GetRulesFromFile() {
 namespace SeaBattleExecutor {
 void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
+    bool playerMove = true;
 
     // закгрузка текстуры крестика
     sf::Texture crossTexture;
     if (!crossTexture.loadFromFile("../images/exit_image.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // закгрузка текстуры точки
+    sf::Texture dotTexture;
+    if (!dotTexture.loadFromFile("../images/dot.jpg")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -161,8 +168,8 @@ void StartGame(sf::RenderWindow& window) {
             robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
             robotShapeMatrix[i][j].setPosition(sf::Vector2f(kRobotMatrixCoordinateX + j * kCellPixelSize + (j + 1) * kCellOutlineThickness, kRobotMatrixCoordinateY + i * kCellPixelSize + (i + 1) * kCellOutlineThickness));
             robotShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
-            robotShapeMatrix[i][j].setOutlineColor(sf::Color::White);
-            robotShapeMatrix[i][j].setOutlineThickness(1);
+            robotShapeMatrix[i][j].setOutlineColor(sf::Color::Transparent);
+            robotShapeMatrix[i][j].setOutlineThickness(kCellOutlineThickness);
         }
     }
 
@@ -184,7 +191,10 @@ void StartGame(sf::RenderWindow& window) {
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
-                robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                if (robotShapeMatrix[i][j].getFillColor() != sf::Color::Transparent) {
+                    robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                }
+                
             }
         }
 
@@ -232,8 +242,25 @@ void StartGame(sf::RenderWindow& window) {
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (numi >= 0 && numj >= 0) {
-                // robotBoard.shoot()
+                switch(robotBoard.shoot(numi, numj)) {
+                    case ShootResult::Miss:
+                        robotShapeMatrix[numi][numj].setTexture(&dotTexture);
+                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
+                        playerMove = false;
+                        break;
+                    case ShootResult::Hit:
+                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
+                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
+                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
+                        break;
+                    case ShootResult::Kill:
+                        robotShapeMatrix[numi][numj].setTexture(&crossTexture);
+                        robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
+                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
+                        break;
+                }
             }
+                
         }
 
         for (size_t i = 0; i < kArraySize; ++i) {
