@@ -1,12 +1,7 @@
 #pragma once
 
 namespace {
-enum class CellStatus {
-    Empty = 1,
-    Ship = 2,
-    ShootedEmpty = 3,
-    ShootedShip = 4,
-};
+
 
 enum class ShootResult {
     Miss = 1,
@@ -16,6 +11,13 @@ enum class ShootResult {
 
 const int kSize = 10;
 } //namespace
+
+enum class CellStatus {
+    Empty = 1,
+    Ship = 2,
+    ShootedEmpty = 3,
+    ShootedShip = 4,
+};
 
 class Cell {
 protected:

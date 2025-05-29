@@ -13,16 +13,17 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/SeaBattleExecutor.h
 )
 
-find_package(SFML REQUIRED COMPONENTS Graphics)
-find_package(SFML REQUIRED COMPONENTS Window)
-
 add_subdirectory(GameClasses)
-add_subdirectory(Battlefield)
+# add_subdirectory(Battlefield)
+
+find_package(SFML REQUIRED COMPONENTS Graphics Window)
+
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
-target_link_libraries(SeaBattle PRIVATE SFML::Graphics)
-target_link_libraries(${project} GameClasses)
-target_link_libraries(${project} Battlefield)
+target_link_libraries(SeaBattle GameClasses)
+# target_link_libraries(SeaBattle Battlefield)
+target_link_libraries(SeaBattle SFML::Graphics)
+target_link_libraries(SeaBattle SFML::Window)
 
 if(ENABLE_DEBUG)
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g)

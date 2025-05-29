@@ -88,7 +88,7 @@ bool Board::isValidPlacement(Ship s) {
     int size = s.getSize();
     bool pozition = s.getPozition();
     bool flag = true;
-    if (pozition) {
+    if (!pozition) {
         flag = 0 <= y && y < kSize && 0 <= x && x + size <= kSize;
         if (!flag) {
             return flag;
@@ -123,10 +123,11 @@ void Board::placeShip(Ship s) {
     int size = s.getSize();
     bool pozition = s.getPozition();
     if (!isValidPlacement(s)) { return; }
-    if (pozition) {
+    if (!pozition) {
         for (int i = x; i < x + size; ++i) {
             array[i][y] = CellStatus::Ship;
         }
+        return;
     }
     for (int j = y; j < y + size; ++j) {
         array[x][j] = CellStatus::Ship;
@@ -244,17 +245,17 @@ void Board::clearBoard() {
 }
 
 void Board::autoPlaceShips() {
-    Board::placeShip(Ship(5, 0, 1, true));
-    Board::placeShip(Ship(4, 2, 1, true));
-    Board::placeShip(Ship(3, 4, 1, true));
-    Board::placeShip(Ship(0, 9, 1, true));
+    Board::placeShip(Ship(0, 5, 1, true));
+    Board::placeShip(Ship(2, 4, 1, true));
+    Board::placeShip(Ship(4, 3, 1, true));
+    Board::placeShip(Ship(9, 0, 1, true));
 
     Board::placeShip(Ship(1, 1, 2, true));
-    Board::placeShip(Ship(0, 7, 2, true));
-    Board::placeShip(Ship(8, 2, 2, true));
+    Board::placeShip(Ship(7, 0, 2, true));
+    Board::placeShip(Ship(2, 8, 2, true));
 
-    Board::placeShip(Ship(4, 9, 3, true));
-    Board::placeShip(Ship(8, 4, 3, false));
+    Board::placeShip(Ship(9, 4, 3, true));
+    Board::placeShip(Ship(4, 8, 3, false));
 
-    Board::placeShip(Ship(3, 6, 4, true));
+    Board::placeShip(Ship(6, 3, 4, true));
 }
