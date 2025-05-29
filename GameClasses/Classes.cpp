@@ -22,10 +22,6 @@ Cell& Cell::operator=(const Cell& obj) {
     return *this;
 }
 
-bool Cell::isShooted() {
-    return (status == CellStatus::ShootedEmpty || status == CellStatus::ShootedShip);
-}
-
 //методы для корабля
 Ship::Ship() {}
 Ship::Ship(int x1, int y1, int size1, bool pozition1) {
@@ -83,6 +79,9 @@ Board& Board::operator=(const Board& obj) {
 
 CellStatus Board::getCell(int x, int y) { return array[x][y].getStatus(); }
 void Board::setCell(int x, int y, CellStatus obj) { array[x][y].setStatus(obj); }
+bool Board::isShooted(int x, int y) {
+    return (array[x][y].getStatus() == CellStatus::ShootedEmpty || array[x][y].getStatus() == CellStatus::ShootedShip);
+}
 
 //pozition = 1 - горизонтально
 //pozition = 0 - вертикально

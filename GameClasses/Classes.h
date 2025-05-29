@@ -30,8 +30,6 @@ public:
     void setStatus(const CellStatus status1);
 
     Cell& operator=(const Cell& obj);
-
-    bool isShooted();
 };
 
 class Ship {
@@ -66,6 +64,8 @@ public:
 
     CellStatus getCell(int x, int y);
     void setCell(int x, int y, CellStatus obj);
+    bool isShooted(int x, int y);
+
     void placeShip(Ship s);
     bool isValidPlacement(Ship s);
     ShootResult shoot(int x, int y);

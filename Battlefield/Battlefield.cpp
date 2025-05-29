@@ -40,7 +40,11 @@ ShootResult randomShoot(Board& obj, int& x, int& y) {
 
 ShootResult smartShoot(Board& obj, int& xHit, int& yHit, int& x, int& y) {
     int hitsCnt = 0;
-    //if (checkCoordinates())
+    x = xHit;
+    y = yHit;
+    if (checkCoordinates(x, y + 1)) {
+
+    }
     return obj.shoot(x, y);
 }
 
