@@ -177,6 +177,7 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
+
         window.clear(sf::Color::White);
 
         exitButton.setOutlineColor(sf::Color::White);

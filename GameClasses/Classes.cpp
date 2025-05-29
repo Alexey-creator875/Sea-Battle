@@ -22,6 +22,10 @@ Cell& Cell::operator=(const Cell& obj) {
     return *this;
 }
 
+bool Cell::isShooted() {
+    return (status == CellStatus::ShootedEmpty || status == CellStatus::ShootedShip);
+}
+
 //методы для корабля
 Ship::Ship() {}
 Ship::Ship(int x1, int y1, int size1, bool pozition1) {
