@@ -1,6 +1,9 @@
 #pragma once
 
 namespace {
+const int kSize = 10;
+} //namespace
+
 enum class CellStatus {
     Empty = 1,
     Ship = 2,
@@ -13,9 +16,6 @@ enum class ShootResult {
     Hit = 2,
     Kill = 3,
 };
-
-const int kSize = 10;
-} //namespace
 
 class Cell {
 protected:
@@ -30,6 +30,8 @@ public:
     void setStatus(const CellStatus status1);
 
     Cell& operator=(const Cell& obj);
+
+    bool isShooted();
 };
 
 class Ship {
