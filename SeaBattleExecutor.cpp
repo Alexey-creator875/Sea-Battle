@@ -4,6 +4,7 @@
 #include <SFML/Window.hpp>
 
 #include "GameClasses/Classes.h"
+#include "Battlefield/Battlefield.h"
 
 #include <vector>
 #include <iostream>
@@ -168,6 +169,9 @@ void StartGame(sf::RenderWindow& window) {
     int numi = -1;
     int numj = -1;
 
+    int robotShootX = 0;
+    int robotShootY = 0;
+
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -176,6 +180,10 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
+        if (playerBoard.allShipsSunk() || robotBoard.allShipsSunk()) {
+            gameContinueExecution = false;
+            continue;
+        }
 
         window.clear(sf::Color::White);
 
@@ -263,23 +271,30 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        // if (!playerMove) {
-        //     if (robotBoard.shoot())
-        // }
-
-
         if (playerMove && numi >= 0 && numj >= 0) {
             robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
         }
 
-        if (playerMove && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        if (!playerMove) {
+            if (randomShoot(playerBoard, robotShootX, robotShootY) == ShootResult::Miss) {
+                playerMove = true;
+            }
+        } else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (numi >= 0 && numj >= 0) {
                 if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
                     playerMove = false;
                 }
             }
-                
         }
+
+        // if (playerMove && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        //     if (numi >= 0 && numj >= 0) {
+        //         if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
+        //             playerMove = false;
+        //         }
+        //     }
+                
+        // }
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
@@ -297,6 +312,17 @@ void StartGame(sf::RenderWindow& window) {
 
         window.display();
     }
+
+    if (robotBoard.allShipsSunk()) {
+        std::cout << "Player win\n";
+        return;
+    }
+
+    if (playerBoard.allShipsSunk()) {
+        std::cout << "Player win\n";
+        return;
+    }
+
 }
 
 void ShowRules(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite) {
@@ -635,6 +661,7 @@ void Menu(sf::RenderWindow& window) {
                     break;
                 case Action::StartGame:
                     StartGame(window);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
                     break;
                 case Action::ShowRules:
                     showRulesButtonText.setFillColor(sf::Color::Blue);
