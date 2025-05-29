@@ -39,11 +39,78 @@ ShootResult randomShoot(Board& obj, int& x, int& y) {
 }
 
 ShootResult smartShoot(Board& obj, int& xHit, int& yHit, int& x, int& y) {
-    int hitsCnt = 0;
+    int cntShooted = 0, xShooted = 0, yShooted = 0, xEmpty = 0, yEmpty = 0;
     x = xHit;
     y = yHit;
-    if (checkCoordinates(x, y + 1)) {
+    if (checkCoordinates(x, y + 1) && obj.getCell(x, y + 1) == CellStatus::ShootedShip) {
+        xShooted = x;
+        yShooted = y + 1;
+        ++cntShooted;
+        if (checkCoordinates(x, y - 1) && obj.getCell(x, y - 1) == CellStatus::Empty) {
+            return obj.shoot(x, --y);
+        } else {
+            while (obj.getCell(x, y) != CellStatus::Empty) {
+                ++y;
+            }
+            return obj.shoot(x, y);
+        }
+    } else if (checkCoordinates(x, y + 1) && obj.getCell(x, y + 1) == CellStatus::Empty) {
+        xEmpty = x;
+        yEmpty = y + 1;
+    }
+    if (checkCoordinates(x, y - 1) && obj.getCell(x, y - 1) == CellStatus::ShootedShip) {
+        xShooted = x;
+        yShooted = y - 1;
+        ++cntShooted;
+        if (checkCoordinates(x, y + 1) && obj.getCell(x, y + 1) == CellStatus::Empty) {
+            return obj.shoot(x, ++y);
+        } else {
+            while (obj.getCell(x, y) != CellStatus::Empty) {
+                --y;
+            }
+            return obj.shoot(x, y);
+        }
+    } else if (checkCoordinates(x, y - 1) && obj.getCell(x, y - 1) == CellStatus::Empty) {
+        xEmpty = x;
+        yEmpty = y - 1;
+    }
 
+    if (checkCoordinates(x + 1, y) && obj.getCell(x + 1, y) == CellStatus::ShootedShip) {
+        xShooted = x + 1;
+        yShooted = y;
+        ++cntShooted;
+        if (checkCoordinates(x - 1, y) && obj.getCell(x - 1, y) == CellStatus::Empty) {
+            return obj.shoot(--x, y);
+        } else {
+            while (obj.getCell(x, y) != CellStatus::Empty) {
+                ++x;
+            }
+            return obj.shoot(x, y);
+        }
+    } else if (checkCoordinates(x + 1, y) && obj.getCell(x + 1, y) == CellStatus::Empty) {
+        xEmpty = x + 1;
+        yEmpty = y;
+    }
+    if (checkCoordinates(x - 1, y) && obj.getCell(x - 1, y) == CellStatus::ShootedShip) {
+        xShooted = x - 1;
+        yShooted = y;
+        ++cntShooted;
+        if (checkCoordinates(x + 1, y) && obj.getCell(x + 1, y) == CellStatus::Empty) {
+            return obj.shoot(++x, y);
+        } else {
+            while (obj.getCell(x, y) != CellStatus::Empty) {
+                --x;
+            }
+            return obj.shoot(x, y);
+        }
+    } else if (checkCoordinates(x - 1, y) && obj.getCell(x - 1, y) == CellStatus::Empty) {
+        xEmpty = x - 1;
+        yEmpty = y;
+    }
+    if (cntShooted == 0) {
+        x = xEmpty;
+        y = yEmpty;
+        return obj.shoot(x, y);
     }
     return obj.shoot(x, y);
 }
