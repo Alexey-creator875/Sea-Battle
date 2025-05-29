@@ -127,7 +127,8 @@ void StartGame(sf::RenderWindow& window) {
     
     // создание борда для игрока
     Board playerBoard;
-    playerBoard.autoPlaceShips();
+    // playerBoard.autoPlaceShips();
+    randomPlaceShips(playerBoard);
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -151,7 +152,8 @@ void StartGame(sf::RenderWindow& window) {
 
     // создание борда для робота
     Board robotBoard;
-    robotBoard.autoPlaceShips();
+    // robotBoard.autoPlaceShips();
+    randomPlaceShips(robotBoard);
 
     // создание массива шейпов для робота
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> robotShapeMatrix;
