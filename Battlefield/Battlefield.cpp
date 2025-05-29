@@ -2,6 +2,8 @@
 #include <random>
 
 namespace {
+std::mt19937 get_rnd(time(nullptr));
+
 const int kShipCnt = 10;
 const int kPlaceCnt = 5;
 
@@ -14,11 +16,11 @@ Ship places[kPlaceCnt][kShipCnt] = {{Ship(0, 1, 1, true), Ship(2, 3, 1, true), S
 bool checkCoordinates(int x, int y) {
     return 0 <= y && y < kSize && 0 <= x && x < kSize;
 }
-
 } // namespace 
 
+
 void randomPlaceShips(Board& obj) {
-    int randNumber = std::rand() % 5;
+    int randNumber = get_rnd() % 5;
     obj.clearBoard();
     for (int i = 0; i < kShipCnt; ++i) {
         obj.placeShip(places[randNumber][i]);
@@ -26,11 +28,11 @@ void randomPlaceShips(Board& obj) {
 }
 
 ShootResult randomShoot(Board& obj, int& x, int& y) {
-    int randX = std::rand() % 10;
-    int randY = std::rand() % 10;
+    int randX = get_rnd() % 10;
+    int randY = get_rnd() % 10;
     while (obj.getCell(randX, randY) == CellStatus::ShootedEmpty || obj.getCell(randX, randY) == CellStatus::ShootedShip) {
-        randX = std::rand() % 10;
-        randY = std::rand() % 10;
+        randX = get_rnd() % 10;
+        randY = get_rnd() % 10;
     }
     x = randX;
     y = randY;
