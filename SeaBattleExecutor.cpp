@@ -245,19 +245,19 @@ void StartGame(sf::RenderWindow& window) {
             if (numi >= 0 && numj >= 0) {
                 switch(robotBoard.shoot(numi, numj)) {
                     case ShootResult::Miss:
-                        robotShapeMatrix[numi][numj].setTexture(&dotTexture);
                         robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
+                        robotShapeMatrix[numi][numj].setTexture(&dotTexture);
                         playerMove = false;
                         break;
                     case ShootResult::Hit:
+                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
                         robotShapeMatrix[numi][numj].setTexture(&crossTexture);
                         robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
                         break;
                     case ShootResult::Kill:
+                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
                         robotShapeMatrix[numi][numj].setTexture(&crossTexture);
                         robotShapeMatrix[numi][numj].setOutlineColor(sf::Color::Red);
-                        robotShapeMatrix[numi][numj].setFillColor(sf::Color::Transparent);
                         break;
                 }
             }
