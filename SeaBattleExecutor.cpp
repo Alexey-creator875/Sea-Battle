@@ -3,6 +3,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
+#include "GameClasses/Classes.h"
+
 #include <vector>
 #include <iostream>
 #include <cstddef>
@@ -49,10 +51,14 @@ const int kExitCheckButtonsCoordinateY = 150;
 // константы для игры
 const unsigned int kArraySize = 10;
 
-const int kMatrixCoordinateX = 200;
-const int kMatrixCoordinateY = 150;
+const int kPlayerMatrixCoordinateX = 200;
+const int kPlayerMatrixCoordinateY = 150;
+
+const int kRobotMatrixCoordinateX = 700;
+const int kRobotMatrixCoordinateY = 150;
 
 const int kCellPixelSize = 30;
+const int kCellOutlineThickness = 2;
 
 // константы для кнопки выхода из игры
 
@@ -111,15 +117,52 @@ void StartGame(sf::RenderWindow& window) {
 
     bool exitButtonChosen = false;
     
-    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> rectangleShapeMatrix;
+    // создание борда для игрока
+    Board playerBoard;
+    playerBoard.autoPlaceShips();
 
     for (size_t i = 0; i < kArraySize; ++i) {
         for (size_t j = 0; j < kArraySize; ++j) {
-            rectangleShapeMatrix[i][j].setFillColor(sf::Color::Blue);
-            rectangleShapeMatrix[i][j].setPosition(sf::Vector2f(kMatrixCoordinateX + j * kCellPixelSize, kMatrixCoordinateY + i * kCellPixelSize));
-            rectangleShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
-            rectangleShapeMatrix[i][j].setOutlineColor(sf::Color::White);
-            rectangleShapeMatrix[i][j].setOutlineThickness(1);
+            std::cout << static_cast<int>(playerBoard.getCell(i, j)) << ' ';
+        }
+
+        std::cout << '\n';
+    }
+
+    // создание массива шейпов для игрока
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            playerShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            playerShapeMatrix[i][j].setPosition(sf::Vector2f(kPlayerMatrixCoordinateX + j * kCellPixelSize + (j + 1) * kCellOutlineThickness, kPlayerMatrixCoordinateY + i * kCellPixelSize + (i + 1) * kCellOutlineThickness));
+            playerShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
+            playerShapeMatrix[i][j].setOutlineThickness(kCellOutlineThickness);
+
+            if (playerBoard.getCell(i, j) == CellStatus::Ship) {
+                playerShapeMatrix[i][j].setOutlineColor(sf::Color::Red);
+            }
+
+            if (playerBoard.getCell(i, j) == CellStatus::Empty) {
+                playerShapeMatrix[i][j].setOutlineColor(sf::Color::Transparent);
+            }
+        }
+    }
+
+    // создание борда для робота
+    Board robotBoard;
+    robotBoard.autoPlaceShips();
+
+    // создание массива шейпов для робота
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> robotShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+            robotShapeMatrix[i][j].setPosition(sf::Vector2f(kRobotMatrixCoordinateX + j * kCellPixelSize + (j + 1) * kCellOutlineThickness, kRobotMatrixCoordinateY + i * kCellPixelSize + (i + 1) * kCellOutlineThickness));
+            robotShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
+            robotShapeMatrix[i][j].setOutlineColor(sf::Color::White);
+            robotShapeMatrix[i][j].setOutlineThickness(1);
         }
     }
 
@@ -134,7 +177,6 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-
         window.clear(sf::Color::White);
 
         exitButton.setOutlineColor(sf::Color::White);
@@ -142,7 +184,7 @@ void StartGame(sf::RenderWindow& window) {
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
-                rectangleShapeMatrix[i][j].setFillColor(sf::Color::Blue);
+                robotShapeMatrix[i][j].setFillColor(sf::Color::Blue);
             }
         }
 
@@ -152,7 +194,7 @@ void StartGame(sf::RenderWindow& window) {
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
-                if (rectangleShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
                     numi = i;
                     numj = j;
                 }
@@ -165,7 +207,7 @@ void StartGame(sf::RenderWindow& window) {
 
 
         if (numi >= 0 && numj >= 0) {
-            rectangleShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
+            robotShapeMatrix[numi][numj].setFillColor(sf::Color::Red);
         }
 
         if (exitButtonChosen) {
@@ -188,9 +230,21 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (numi >= 0 && numj >= 0) {
+                // robotBoard.shoot()
+            }
+        }
+
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
-                window.draw(rectangleShapeMatrix[i][j]);
+                window.draw(playerShapeMatrix[i][j]);
+            }
+        }
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(robotShapeMatrix[i][j]);
             }
         }
 
