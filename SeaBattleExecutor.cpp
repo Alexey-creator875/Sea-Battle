@@ -637,7 +637,6 @@ void Menu(sf::RenderWindow& window) {
     // создание прямоугольника куда пихаем текстуру фона
     sf::RectangleShape backGround(sf::Vector2f(kDeffaultWindowLenght, kDeffaultWindowHeight));
     backGround.setTexture(&imageBackground);
-    // window.draw(backGround);
 
 
 
@@ -712,13 +711,12 @@ void Menu(sf::RenderWindow& window) {
     quitGameButton.setSize(sf::Vector2f(quitGameButtonSizeX, quitGameButtonSizeY));
     quitGameButton.setFillColor(sf::Color(0, 0, 0, 0));
 
-    bool menuContinueExecution = true;
     Action menuAction = Action::Wait;
     sf::Texture windowCurrentStateTexture(window.getSize());
     windowCurrentStateTexture.update(window);
     sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
 
-    while (window.isOpen() && menuContinueExecution) {
+    while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
@@ -754,9 +752,7 @@ void Menu(sf::RenderWindow& window) {
                 case Action::Wait:
                     break;
                 case Action::StartGame:
-                    StartGame(window);
-                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                    break;
+                    return;
                 case Action::ShowRules:
                     showRulesButtonText.setFillColor(sf::Color::Blue);
                     window.draw(backGround);
@@ -797,7 +793,7 @@ void Menu(sf::RenderWindow& window) {
 
                     if (QuitGame(window, windowCurrentStateSprite)) {
                         window.close();
-                        continue;
+                        return;
                     }
 
                     std::this_thread::sleep_for(std::chrono::milliseconds(150));
@@ -827,13 +823,16 @@ void RunApplication() {
     // window.setFramerateLimit(5);
     // window.setVerticalSyncEnabled(true);
 
+    // static bool mainLoopContinueExecution = true;
+
     while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>())
-                window.close();
+        Menu(window);
+
+        if (!window.isOpen()) {
+            break;
         }
 
-        Menu(window);
+        StartGame(window);
     }
 }
 }  // namespace SeaBattleExecutor
