@@ -79,6 +79,13 @@ const unsigned int kResultsWindowCharacterSize = 40;
 const int kResultsTextCoordinateY = 50;
 const int kReturnButtonCoordinateY = 150;
 
+// void Draw(sf::RenderWindow& window) {}
+
+// template<class Head, class... Tail>
+// void Draw(sf::RenderWindow& window, const Head& head, const Tail&... tail) {
+//     window.draw(head);
+//     Draw(window, tail...);
+// }
 
 std::string GetRulesFromFile() {
     std::string text;
@@ -273,6 +280,22 @@ void StartGame(sf::RenderWindow& window) {
     int robotShootX = 0;
     int robotShootY = 0;
 
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& exitButton) {
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(playerShapeMatrix[i][j]);
+            }
+        }
+
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(robotShapeMatrix[i][j]);
+            }
+        }
+
+        window.draw(exitButton);
+    };
+
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -301,6 +324,8 @@ void StartGame(sf::RenderWindow& window) {
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (exitButtonChosen) {
+                DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, exitButton);
+
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
@@ -390,19 +415,7 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                window.draw(playerShapeMatrix[i][j]);
-            }
-        }
-
-        for (size_t i = 0; i < kArraySize; ++i) {
-            for (size_t j = 0; j < kArraySize; ++j) {
-                window.draw(robotShapeMatrix[i][j]);
-            }
-        }
-
-        window.draw(exitButton);
+        DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, exitButton);
 
         window.display();
     }
@@ -711,6 +724,20 @@ void Menu(sf::RenderWindow& window) {
     quitGameButton.setSize(sf::Vector2f(quitGameButtonSizeX, quitGameButtonSizeY));
     quitGameButton.setFillColor(sf::Color(0, 0, 0, 0));
 
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& backGround, auto& titul, auto& startGameButton, auto& startGameButtonText, auto& showRulesButton, auto& showRulesButtonText, auto& quitGameButton, auto& quitGameButtonText) {
+        window.draw(backGround);
+        window.draw(titul);
+
+        window.draw(startGameButton);
+        window.draw(startGameButtonText);
+
+        window.draw(showRulesButton);
+        window.draw(showRulesButtonText);
+        
+        window.draw(quitGameButton);
+        window.draw(quitGameButtonText);
+    };
+
     Action menuAction = Action::Wait;
     sf::Texture windowCurrentStateTexture(window.getSize());
     windowCurrentStateTexture.update(window);
@@ -755,17 +782,7 @@ void Menu(sf::RenderWindow& window) {
                     return;
                 case Action::ShowRules:
                     showRulesButtonText.setFillColor(sf::Color::Blue);
-                    window.draw(backGround);
-                    window.draw(titul);
-
-                    window.draw(startGameButton);
-                    window.draw(startGameButtonText);
-
-                    window.draw(showRulesButton);
-                    window.draw(showRulesButtonText);
-                    
-                    window.draw(quitGameButton);
-                    window.draw(quitGameButtonText);
+                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);
 
                     windowCurrentStateTexture.update(window);
                     windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
@@ -776,17 +793,8 @@ void Menu(sf::RenderWindow& window) {
                     break;
                 case Action::QuitGame:
                     quitGameButtonText.setFillColor(sf::Color::Blue);
-                    window.draw(backGround);
-                    window.draw(titul);
+                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);
 
-                    window.draw(startGameButton);
-                    window.draw(startGameButtonText);
-
-                    window.draw(showRulesButton);
-                    window.draw(showRulesButtonText);
-                    
-                    window.draw(quitGameButton);
-                    window.draw(quitGameButtonText);
 
                     windowCurrentStateTexture.update(window);
                     windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
@@ -802,18 +810,7 @@ void Menu(sf::RenderWindow& window) {
             }
         }
 
-        window.draw(backGround);
-        window.draw(titul);
-
-        window.draw(startGameButton);
-        window.draw(startGameButtonText);
-
-        window.draw(showRulesButton);
-        window.draw(showRulesButtonText);
-        
-        window.draw(quitGameButton);
-        window.draw(quitGameButtonText);
-
+        DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);     
         window.display();
     }
 }
