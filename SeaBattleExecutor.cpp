@@ -5,6 +5,7 @@
 
 #include "GameClasses/Classes.h"
 #include "Battlefield/Battlefield.h"
+#include "CustomEntities/Button.h"
 
 #include <vector>
 #include <iostream>
@@ -28,8 +29,12 @@ const unsigned int kMenuButtonsCharacterSize = 40;
 
 const int kMenuTitulCoordinateY = 50;
 const int kMenuStartGameButtonCoordinateY = 250;
-const int kMenuShowRulesButtonCoordinateY = 350;
-const int kMenuQuitGameButtonCoordinateY = 450;
+const int kMenuShowRulesButtonCoordinateY = 370;
+const int kMenuQuitGameButtonCoordinateY = 490;
+
+const float kMenuButtonsSizeX = 550;
+const float kMenuButtonsSizeY = 70;
+
 
 // константы для окна с правилами
 const unsigned int kRulesWindowSizeX = 900;
@@ -80,10 +85,14 @@ const int kResultsTextCoordinateY = 50;
 const int kReturnButtonCoordinateY = 150;
 
 // константы для дочерних окон
-const unsigned int kChildWindowMinSizeX = 600;
+const unsigned int kChildWindowMinSizeX = 900;
 const unsigned int kChildWindowMinSizeY = 300;
 
 const unsigned int kChildWindowMaxCharacterSize = 40;
+
+const float kChildWindowButtonSizeX = 100.f;
+const float kChildWindowButtonSizeY = 70.f;
+
 
 // константы для дочернего окна с дихотомическим вопросом
 const int kChildWindowQuestionCoordinateY = 50;
@@ -93,6 +102,11 @@ const int kChildWindowButtonsCoordinateY = 150;
 
 const unsigned int kChildWindowIndent = 40;
 
+// константы для цветов
+const sf::Color kBrown = sf::Color(70, 55, 45);
+const sf::Color kBlue = sf::Color(70, 90, 230);
+const sf::Color kGreen = sf::Color(65, 180, 30);
+const sf::Color kRed = sf::Color(235, 65, 65);
 
 bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
@@ -102,41 +116,61 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
     if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
         throw std::runtime_error("failed to open file");
     }
+
+    // загрузка картинки заднего фона в текстуру
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("../images/IMG_0796.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // загрузка текстуры кнопки да
+    sf::Texture yesButtonTexture;
+    if (!yesButtonTexture.loadFromFile("../images/IMG_0794.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // загрузка текстуры кнопки нет
+    sf::Texture noButtonTexture;
+    if (!noButtonTexture.loadFromFile("../images/IMG_0795.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+    
     
     // создание лейбла с вопросом
     sf::Text question(helveticaFont);
-    question.setFillColor(sf::Color::Blue);
+    question.setFillColor(kBrown);
     question.setOutlineColor(sf::Color::White);
-
-
 
     question.setCharacterSize(kChildWindowMaxCharacterSize);
     question.setString(text);
 
 
-    // создаём надпись кнопки да
-    sf::Text yesButtonText(helveticaFont, sf::String("Yes"));
-    yesButtonText.setFillColor(sf::Color::Blue);
-    yesButtonText.setCharacterSize(kChildWindowMaxCharacterSize);
+    // создаём крутую кнопку да
+    Button yesButton(helveticaFont);
+    yesButton.setString(L"Да");
+    yesButton.setTextFillColor(kBrown);
+    yesButton.setCharacterSize(kChildWindowMaxCharacterSize);
+    yesButton.setSize(sf::Vector2f(kChildWindowButtonSizeX, kChildWindowButtonSizeY));
+    yesButton.setTexture(&yesButtonTexture);
 
-    // создаём надпись кнопки нет
-    sf::Text noButtonText(helveticaFont, sf::String("No"));
-    noButtonText.setFillColor(sf::Color::Blue);
-    noButtonText.setCharacterSize(kChildWindowMaxCharacterSize);
 
-    float yesButtonTextSizeX = yesButtonText.getGlobalBounds().getCenter().x * 2;
-    float yesButtonTextSizeY = yesButtonText.getGlobalBounds().getCenter().y * 2;
-
+    // создаём крутую кнопку нет
+    Button noButton(helveticaFont);
+    noButton.setString(L"Нет");
+    noButton.setTextFillColor(kBrown);
+    noButton.setCharacterSize(kChildWindowMaxCharacterSize);
+    noButton.setSize(sf::Vector2f(kChildWindowButtonSizeX, kChildWindowButtonSizeY));
+    noButton.setTexture(&noButtonTexture);
 
     question.setCharacterSize(kChildWindowMaxCharacterSize);
-    float questionSizeY = question.getGlobalBounds().getCenter().y * 2;
+    float questionSizeY = question.getLocalBounds().getCenter().y * 2;
 
-    while (questionSizeY > window.getSize().y - 3 * kChildWindowIndent - yesButtonTextSizeY) {
+    while (questionSizeY > window.getSize().y - 3 * kChildWindowIndent - yesButton.getSize().y) {
         question.setCharacterSize(question.getCharacterSize() / 2);
-        questionSizeY = question.getGlobalBounds().getCenter().y * 2;
+        questionSizeY = question.getLocalBounds().getCenter().y * 2;
     }
 
-    float questionSizeX = question.getGlobalBounds().getCenter().x * 2;
+    float questionSizeX = question.getLocalBounds().getCenter().x * 2;
 
     unsigned int childWindowSizeX = questionSizeX + 2 * kChildWindowIndent;
 
@@ -144,10 +178,17 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
         childWindowSizeX = kChildWindowMinSizeX;
     }
 
-    unsigned int childWindowSizeY = questionSizeY + yesButtonTextSizeY + 3 * kChildWindowIndent;
+    unsigned int childWindowSizeY = questionSizeY + yesButton.getSize().y + 3 * kChildWindowIndent;
 
-    // создание окна с подверждением выхода из игры
+    if (childWindowSizeY < kChildWindowMinSizeY) {
+        childWindowSizeY = kChildWindowMinSizeY;
+    }
+
+    // создание дочернего окна с дихотомическим вопросом
     sf::RenderTexture childWindow(sf::Vector2u(childWindowSizeX, childWindowSizeY));
+
+    sf::RectangleShape childWindowBackground(sf::Vector2f(childWindowSizeX, childWindowSizeY));
+    childWindowBackground.setTexture(&backgroundTexture);
 
     sf::Sprite childWindowSprite(childWindow.getTexture());
     childWindowSprite.setPosition(sf::Vector2f((window.getSize().x - childWindowSizeX) / 2, (window.getSize().y - childWindowSizeY) / 2));
@@ -156,29 +197,13 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
     float questionCoordinateX = (childWindowSizeX - questionSizeX) / 2;
     question.setPosition(sf::Vector2f(questionCoordinateX, kChildWindowIndent));
 
-    // создаём кнопку да
-    sf::RectangleShape yesButton;
-    yesButton.setSize(sf::Vector2f(yesButtonTextSizeX, yesButtonTextSizeY));
-    yesButton.setFillColor(sf::Color::White);
-
     // размещение кнопки да
-    float yesButtonCoordinateX = (childWindowSizeX - yesButtonTextSizeX) / 4;
+    float yesButtonCoordinateX = (childWindowSizeX - yesButton.getSize().x) / 4;
     float yesButtonCoordinateY = questionSizeY + 2 * kChildWindowIndent;
     yesButton.setPosition(sf::Vector2f(yesButtonCoordinateX, yesButtonCoordinateY));
 
-    // создаём кнопку нет
-    sf::RectangleShape noButton;
-    noButton.setSize(sf::Vector2f(yesButtonTextSizeX, yesButtonTextSizeY));
-    noButton.setFillColor(sf::Color::White);
-
     // размещение кнопки нет
     noButton.setPosition(sf::Vector2f(3 * yesButtonCoordinateX, yesButtonCoordinateY));
-
-    // размещение текста кнопки да
-    yesButtonText.setPosition(yesButton.getPosition());
-
-    // размещение текста кнопки нет
-    noButtonText.setPosition(sf::Vector2f(3 * yesButtonCoordinateX + (yesButtonTextSizeX / 2 - noButtonText.getGlobalBounds().getCenter().x), yesButtonCoordinateY));
 
     int num = 0;
 
@@ -191,17 +216,17 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
         }
 
         window.clear();
-        yesButtonText.setFillColor(sf::Color::Blue);
-        noButtonText.setFillColor(sf::Color::Blue);
+        yesButton.setTextFillColor(kBrown);
+        noButton.setTextFillColor(kBrown);
         num = 0;
 
         if (yesButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
-            yesButtonText.setFillColor(sf::Color::Red);
+            yesButton.setTextFillColor(kGreen);
             num = 1;
         }
 
         if (noButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
-            noButtonText.setFillColor(sf::Color::Red);
+            noButton.setTextFillColor(kRed);
             num = 2;
         }
 
@@ -218,14 +243,13 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
             }
         }
 
-        childWindow.clear(sf::Color::White);
+        childWindow.clear(sf::Color::Transparent);
+
+        childWindow.draw(childWindowBackground);
         childWindow.draw(question);
 
-        childWindow.draw(yesButton);
-        childWindow.draw(yesButtonText);
-
-        childWindow.draw(noButton);
-        childWindow.draw(noButtonText);
+        yesButton.draw(childWindow);
+        noButton.draw(childWindow);
 
         childWindow.display();
 
@@ -247,29 +271,40 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
         throw std::runtime_error("failed to open file");
     }
 
-    // создание лейбла с информацией
-    sf::Text information(helveticaFont, text);
-    information.setFillColor(sf::Color::Blue);
-    information.setOutlineColor(sf::Color::White);
-
-    // создание надписи кнопки продолжить
-    sf::Text continueButtonText(helveticaFont, sf::String("Continue"));
-    continueButtonText.setFillColor(sf::Color::Blue);
-    continueButtonText.setCharacterSize(kChildWindowMaxCharacterSize);
-
-    float continueButtonTextSizeX = continueButtonText.getGlobalBounds().getCenter().x * 2;
-    float continueButtonTextSizeY = continueButtonText.getGlobalBounds().getCenter().y * 2;
-
-
-    information.setCharacterSize(kChildWindowMaxCharacterSize);
-    float informationSizeY = information.getGlobalBounds().getCenter().y * 2;
-
-    while (informationSizeY > window.getSize().y - 3 * kChildWindowIndent - continueButtonTextSizeY) {
-        information.setCharacterSize(information.getCharacterSize() / 2);
-        informationSizeY = information.getGlobalBounds().getCenter().y * 2;
+    // загрузка картинки заднего фона в текстуру
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("../images/IMG_0796.png")) {
+        throw std::runtime_error("failed to open file");
     }
 
-    float informationSizeX = information.getGlobalBounds().getCenter().x * 2;
+    // загрузка текстуры кнопки
+    sf::Texture buttonTexture;
+    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // создание лейбла с информацией
+    sf::Text information(helveticaFont);
+    information.setString(text);
+    information.setFillColor(kBrown);
+    information.setCharacterSize(kChildWindowMaxCharacterSize);
+
+    // создаём крутую кнопку продолжить
+    Button continueButton(helveticaFont);
+    continueButton.setString(L"Продолжить");
+    continueButton.setTextFillColor(kBrown);
+    continueButton.setCharacterSize(kChildWindowMaxCharacterSize);
+    // continueButton.setSize(sf::Vector2f(kChildWindowButtonSizeX, kChildWindowButtonSizeY));
+    continueButton.setTexture(&buttonTexture);
+
+    float informationSizeY = information.getLocalBounds().getCenter().y * 2;
+
+    while (informationSizeY > window.getSize().y - 3 * kChildWindowIndent - continueButton.getSize().y) {
+        information.setCharacterSize(information.getCharacterSize() / 2);
+        informationSizeY = information.getLocalBounds().getCenter().y * 2;
+    }
+
+    float informationSizeX = information.getLocalBounds().getCenter().x * 2;
 
     unsigned int childWindowSizeX = informationSizeX + 2 * kChildWindowIndent;
 
@@ -277,10 +312,17 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
         childWindowSizeX = kChildWindowMinSizeX;
     }
 
-    unsigned int childWindowSizeY = informationSizeY + continueButtonTextSizeY + 3 * kChildWindowIndent;
+    unsigned int childWindowSizeY = informationSizeY + continueButton.getSize().y + 3 * kChildWindowIndent;
 
-    // создание дочернего окна с результатами
+    if (childWindowSizeY < kChildWindowMinSizeY) {
+        childWindowSizeY = kChildWindowMinSizeY;
+    }
+
+    // создание дочернего окна с информацией
     sf::RenderTexture childWindow(sf::Vector2u(childWindowSizeX, childWindowSizeY));
+
+    sf::RectangleShape childWindowBackground(sf::Vector2f(childWindowSizeX, childWindowSizeY));
+    childWindowBackground.setTexture(&backgroundTexture);
 
     sf::Sprite childWindowSprite(childWindow.getTexture());
     childWindowSprite.setPosition(sf::Vector2f((window.getSize().x - childWindowSizeX) / 2, (window.getSize().y - childWindowSizeY) / 2));
@@ -289,16 +331,10 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
     float informationCoordinateX = (childWindowSizeX - informationSizeX) / 2;
     information.setPosition(sf::Vector2f(informationCoordinateX, kChildWindowIndent));
 
-    // размещение текста кнопки продолжить
-    float continueButtonCoordinateX = (childWindowSizeX - continueButtonTextSizeX) / 2;
+    // размещение кнопки продолжить
+    float continueButtonCoordinateX = (childWindowSizeX - continueButton.getSize().x) / 2;
     float continueButtonCoordinateY = informationSizeY + 2 * kChildWindowIndent;
-    continueButtonText.setPosition(sf::Vector2f(continueButtonCoordinateX, continueButtonCoordinateY));
-
-    // создаём кнопку продолжить
-    sf::RectangleShape continueButton;
-    continueButton.setPosition(continueButtonText.getPosition());
-    continueButton.setSize(sf::Vector2f(continueButtonTextSizeX, continueButtonTextSizeY));
-    continueButton.setFillColor(sf::Color::Transparent);
+    continueButton.setPosition(sf::Vector2f(continueButtonCoordinateX, continueButtonCoordinateY));
 
     bool continueButtonChosen = false;
 
@@ -312,11 +348,11 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
 
         window.clear();
 
-        continueButtonText.setFillColor(sf::Color::Blue);
+        continueButton.setTextFillColor(kBrown);
         continueButtonChosen = false;
 
         if (continueButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
-            continueButtonText.setFillColor(sf::Color::Red);
+            continueButton.setTextFillColor(kBlue);
             continueButtonChosen = true;
         }
 
@@ -326,11 +362,11 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
             }
         }
 
-        childWindow.clear(sf::Color::White);
+        childWindow.clear(sf::Color::Transparent);
 
+        childWindow.draw(childWindowBackground);
         childWindow.draw(information);
-        childWindow.draw(continueButton);
-        childWindow.draw(continueButtonText);
+        continueButton.draw(childWindow);
 
         childWindow.display();
 
@@ -341,7 +377,7 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
     }
 }
 
-std::string GetRulesFromFile() {
+sf::String GetRulesFromFile() {
     std::string text;
 
     std::ifstream rulesFile("../images/rules.txt");
@@ -358,7 +394,7 @@ std::string GetRulesFromFile() {
     }
 
     rulesFile.close();
-    return text;
+    return sf::String::fromUtf8(text.begin(), text.end());
 }
 }  // namespace
 
@@ -494,7 +530,7 @@ void StartGame(sf::RenderWindow& window) {
                 windowCurrentStateTexture.update(window);
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
                 
-                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, "Do you want to exit to menu?")) {
+                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите вернуться в меню?")) {
                     return;
                 }
 
@@ -588,17 +624,23 @@ void StartGame(sf::RenderWindow& window) {
     sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
 
     if (robotBoard.allShipsSunk()) {
-        ShowChildWindowWithInformation(window, windowCurrentStateSprite, "My congrats! You won!");
+        ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Поздравляем! Вы выиграли :)");
         return;
     }
 
-    ShowChildWindowWithInformation(window, windowCurrentStateSprite, "Unluck! You have lost");
+    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Облава! Вы проиграли :(");
 }
 
 void Menu(sf::RenderWindow& window) {
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageBackground;
     if (!imageBackground.loadFromFile("../images/background.jpg")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // загрузка текстуры кнопок
+    sf::Texture buttonTexture;
+    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -615,82 +657,61 @@ void Menu(sf::RenderWindow& window) {
     }
 
     // создаём лейбл для названия игры
-    sf::Text titul(helveticaFont, sf::String("Sea Battle"));
-    titul.setFillColor(sf::Color::Blue);
+    sf::Text titul(helveticaFont, sf::String(L"Морской бой"));
+    titul.setFillColor(kBlue);
     titul.setCharacterSize(kMenuTitulCharacterSize);
-    titul.setOutlineThickness(3);
+    titul.setOutlineThickness(2);
     titul.setOutlineColor(sf::Color::White);
 
     float titulCoordinateX = (window.getSize().x / 2) - titul.getGlobalBounds().getCenter().x;
     titul.setPosition(sf::Vector2f(titulCoordinateX, kMenuTitulCoordinateY));
 
 
+    // создаём крутую кнопку, начинающую игру
+    Button startGameButton(helveticaFont);
+    startGameButton.setString(L"Начать игру");
+    startGameButton.setTextFillColor(kBrown);
+    startGameButton.setCharacterSize(kMenuButtonsCharacterSize);
+    startGameButton.setSize(sf::Vector2f(kMenuButtonsSizeX, kMenuButtonsSizeY));
+    
+    float startGameButtonCoordinateX = (window.getSize().x - startGameButton.getSize().x) / 2;
 
-    // создаём надпись кнопки, запускающей игру
-    sf::Text startGameButtonText(helveticaFont, sf::String("Start the game"));
-    startGameButtonText.setFillColor(sf::Color::Blue);
-    startGameButtonText.setCharacterSize(kMenuButtonsCharacterSize);
-
-    float startGameButtonCoordinateX = (window.getSize().x / 2) - startGameButtonText.getGlobalBounds().getCenter().x;
-    startGameButtonText.setPosition(sf::Vector2f(startGameButtonCoordinateX, kMenuStartGameButtonCoordinateY));
-
-    // создаём кнопку, запускающую игру
-    sf::RectangleShape startGameButton;
-    startGameButton.setPosition(startGameButtonText.getPosition());
-    float startGameButtonSizeX = (startGameButtonText.getGlobalBounds().getCenter().x - startGameButtonText.getPosition().x) * 2;
-    float startGameButtonSizeY = (startGameButtonText.getGlobalBounds().getCenter().y - startGameButtonText.getPosition().y) * 2;
-
-    startGameButton.setSize(sf::Vector2f(startGameButtonSizeX, startGameButtonSizeY));
-    startGameButton.setFillColor(sf::Color(0, 0, 0, 0));
+    startGameButton.setPosition(sf::Vector2f(startGameButtonCoordinateX, kMenuStartGameButtonCoordinateY));
+    startGameButton.setTexture(&buttonTexture);
 
 
-    // создаём надпись кнопки, показывающей правила игры
-    sf::Text showRulesButtonText(helveticaFont, sf::String("Check Rules"));
-    showRulesButtonText.setFillColor(sf::Color::Blue);
-    showRulesButtonText.setCharacterSize(kMenuButtonsCharacterSize);
+    // создаём крутую кнопку, показывающую правила игры
+    Button showRulesButton(helveticaFont);
+    showRulesButton.setString(L"Посмотреть правила игры");
+    showRulesButton.setTextFillColor(kBrown);
+    showRulesButton.setCharacterSize(kMenuButtonsCharacterSize);
+    showRulesButton.setSize(sf::Vector2f(kMenuButtonsSizeX, kMenuButtonsSizeY));
 
-    float showRulesButtonCoordinateX = (window.getSize().x / 2) - showRulesButtonText.getGlobalBounds().getCenter().x;
-    showRulesButtonText.setPosition(sf::Vector2f(showRulesButtonCoordinateX, kMenuShowRulesButtonCoordinateY));
+    float showRulesButtonCoordinateX = (window.getSize().x - showRulesButton.getSize().x) / 2;
+    showRulesButton.setPosition(sf::Vector2f(showRulesButtonCoordinateX, kMenuShowRulesButtonCoordinateY));
+    showRulesButton.setTexture(&buttonTexture);
 
-    // создаём кнопку, показывающую правила игры
-    sf::RectangleShape showRulesButton;
-    showRulesButton.setPosition(showRulesButtonText.getPosition());
-    float showRulesButtonSizeX = (showRulesButtonText.getGlobalBounds().getCenter().x - showRulesButtonText.getPosition().x) * 2;
-    float showRulesButtonSizeY = (showRulesButtonText.getGlobalBounds().getCenter().y - showRulesButtonText.getPosition().y) * 2;
 
-    showRulesButton.setSize(sf::Vector2f(showRulesButtonSizeX, showRulesButtonSizeY));
-    showRulesButton.setFillColor(sf::Color(0, 0, 0, 0));
+    // создаём крутую кнопку, закрывающую игру
+    Button quitGameCoolButton(helveticaFont);
+    quitGameCoolButton.setString(L"Выйти из игры");
+    quitGameCoolButton.setTextFillColor(kBrown);
+    quitGameCoolButton.setCharacterSize(kMenuButtonsCharacterSize);
+    quitGameCoolButton.setSize(sf::Vector2f(kMenuButtonsSizeX, kMenuButtonsSizeY));
+
+    float quitGameCoolButtonCoordinateX = (window.getSize().x - quitGameCoolButton.getSize().x) / 2;
+
+    quitGameCoolButton.setPosition(sf::Vector2f(quitGameCoolButtonCoordinateX, kMenuQuitGameButtonCoordinateY));
+    quitGameCoolButton.setTexture(&buttonTexture);
     
 
-    // создаём надпись кнопки, закрывающей игру
-    sf::Text quitGameButtonText(helveticaFont, sf::String("Exit the game"));
-    quitGameButtonText.setFillColor(sf::Color::Blue);
-    quitGameButtonText.setCharacterSize(kMenuButtonsCharacterSize);
-
-    float quitGameButtonCoordinateX = (window.getSize().x / 2) - quitGameButtonText.getGlobalBounds().getCenter().x;
-    quitGameButtonText.setPosition(sf::Vector2f(quitGameButtonCoordinateX, kMenuQuitGameButtonCoordinateY));
-
-    // создаём кнопку, закрывающую игру
-    sf::RectangleShape quitGameButton;
-    quitGameButton.setPosition(quitGameButtonText.getPosition());
-    float quitGameButtonSizeX = (quitGameButtonText.getGlobalBounds().getCenter().x - quitGameButtonText.getPosition().x) * 2;
-    float quitGameButtonSizeY = (quitGameButtonText.getGlobalBounds().getCenter().y - quitGameButtonText.getPosition().y) * 2;
-
-    quitGameButton.setSize(sf::Vector2f(quitGameButtonSizeX, quitGameButtonSizeY));
-    quitGameButton.setFillColor(sf::Color(0, 0, 0, 0));
-
-    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& backGround, auto& titul, auto& startGameButton, auto& startGameButtonText, auto& showRulesButton, auto& showRulesButtonText, auto& quitGameButton, auto& quitGameButtonText) {
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& backGround, auto& titul, auto& startGameButton, auto& showRulesButton, auto& quitGameCoolButton) {
         window.draw(backGround);
         window.draw(titul);
 
-        window.draw(startGameButton);
-        window.draw(startGameButtonText);
-
-        window.draw(showRulesButton);
-        window.draw(showRulesButtonText);
-        
-        window.draw(quitGameButton);
-        window.draw(quitGameButtonText);
+        startGameButton.draw(window);
+        showRulesButton.draw(window);
+        quitGameCoolButton.draw(window);
     };
 
     Action menuAction = Action::Wait;
@@ -708,24 +729,24 @@ void Menu(sf::RenderWindow& window) {
 
         window.clear();
 
-        startGameButtonText.setFillColor(sf::Color::Blue);
-        showRulesButtonText.setFillColor(sf::Color::Blue);
-        quitGameButtonText.setFillColor(sf::Color::Blue);
+        startGameButton.setTextFillColor(kBrown);
+        showRulesButton.setTextFillColor(kBrown);
+        quitGameCoolButton.setTextFillColor(kBrown);
 
         menuAction = Action::Wait;
 
         if (startGameButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-            startGameButtonText.setFillColor(sf::Color::Red);
+            startGameButton.setTextFillColor(kBlue);
             menuAction = Action::StartGame;
         }
 
         if (showRulesButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-            showRulesButtonText.setFillColor(sf::Color::Red);
+            showRulesButton.setTextFillColor(kBlue);
             menuAction = Action::ShowRules;
         }
 
-        if (quitGameButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-            quitGameButtonText.setFillColor(sf::Color::Red);
+        if (quitGameCoolButton.getLocalBounds().contains(static_cast<sf::Vector2f>(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - quitGameCoolButton.getPosition()))) {
+            quitGameCoolButton.setTextFillColor(kBlue);
             menuAction = Action::QuitGame;
         }
 
@@ -736,8 +757,8 @@ void Menu(sf::RenderWindow& window) {
                 case Action::StartGame:
                     return;
                 case Action::ShowRules:
-                    showRulesButtonText.setFillColor(sf::Color::Blue);
-                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);
+                    showRulesButton.setTextFillColor(kBlue);
+                    DrawAllEntitiesInWindow(window, backGround, titul, startGameButton, showRulesButton, quitGameCoolButton);
 
                     windowCurrentStateTexture.update(window);
                     windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
@@ -747,14 +768,13 @@ void Menu(sf::RenderWindow& window) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(150));
                     break;
                 case Action::QuitGame:
-                    quitGameButtonText.setFillColor(sf::Color::Blue);
-                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);
-
+                    quitGameCoolButton.setTextFillColor(kBrown);
+                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, showRulesButton, quitGameCoolButton);
 
                     windowCurrentStateTexture.update(window);
                     windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
                     
-                    if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, "Are you sure you want to exit?")) {
+                    if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите выйти из игры?")) {
                         window.close();
                         return;
                     }
@@ -765,7 +785,7 @@ void Menu(sf::RenderWindow& window) {
             }
         }
 
-        DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, startGameButtonText, showRulesButton, showRulesButtonText, quitGameButton, quitGameButtonText);     
+        DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, showRulesButton, quitGameCoolButton);     
         window.display();
     }
 }
