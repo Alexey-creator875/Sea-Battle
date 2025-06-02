@@ -417,23 +417,32 @@ void StartGame(sf::RenderWindow& window) {
         throw std::runtime_error("failed to load image");
     }
 
+    // создание прямоугольника куда пихаем текстуру поля игрока
+    sf::RectangleShape playerBoardBackground;
+    playerBoardBackground.setSize(sf::Vector2f((kArraySize + 1) * kCellPixelSize, (kArraySize + 4) * kCellPixelSize));
+
+    float playerBoardBackgroundCoordinateX = (window.getSize().x / 2 - playerBoardBackground.getSize().x) / 2;
+    float playerBoardBackgroundCoordinateY = (window.getSize().y - playerBoardBackground.getSize().y) / 2;
+
+    playerBoardBackground.setPosition(sf::Vector2f(playerBoardBackgroundCoordinateX, playerBoardBackgroundCoordinateY));
+    playerBoardBackground.setTexture(&playerBoardTexture);
+
     // загрузка текстуры поля робота
     sf::Texture robotBoardTexture;
     if (!robotBoardTexture.loadFromFile("../images/IMG_0789.png")) {
         throw std::runtime_error("failed to load image");
     }
 
-    // закгрузка текстуры крестика
-    sf::Texture crossTexture;
-    if (!crossTexture.loadFromFile("../images/cross.webp.png")) {
-        throw std::runtime_error("failed to load image");
-    }
+    // создание прямоугольника куда пихаем текстуру поля робота
+    sf::RectangleShape robotBoardBackground;
+    robotBoardBackground.setSize(sf::Vector2f((kArraySize + 1) * kCellPixelSize, (kArraySize + 4) * kCellPixelSize));
 
-    // закгрузка текстуры точки
-    sf::Texture dotTexture;
-    if (!dotTexture.loadFromFile("../images/dot.jpg")) {
-        throw std::runtime_error("failed to load image");
-    }
+    float robotBoardBackgroundCoordinateX = (3 * window.getSize().x / 2 - robotBoardBackground.getSize().x) / 2;
+    float robotBoardBackgroundCoordinateY = (window.getSize().y - robotBoardBackground.getSize().y) / 2;
+
+    robotBoardBackground.setPosition(sf::Vector2f(robotBoardBackgroundCoordinateX, robotBoardBackgroundCoordinateY));
+    robotBoardBackground.setTexture(&robotBoardTexture);
+
 
     // загрузка текстуры кнопок
     sf::Texture buttonTexture;
@@ -446,8 +455,6 @@ void StartGame(sf::RenderWindow& window) {
     giveUpButton.setString(L"Сдаться");
     giveUpButton.setTextFillColor(kBrown);
     giveUpButton.setCharacterSize(kGameGiveUpButtonCharacterSize);
-
-    // float quitGameCoolButtonCoordinateX = (window.getSize().x - quitGameCoolButton.getSize().x) / 2;
 
     giveUpButton.setPosition(sf::Vector2f(kGameGiveUpButtonCoordinateX, kGameGiveUpButtonCoordinateY));
     giveUpButton.setTexture(&buttonTexture);
@@ -462,7 +469,7 @@ void StartGame(sf::RenderWindow& window) {
 
     for (size_t i = 0; i < kArraySize; ++i) {
         for (size_t j = 0; j < kArraySize; ++j) {
-            playerShapeMatrix[i][j].setPosition(sf::Vector2f(kPlayerMatrixCoordinateX + j * kCellPixelSize, kPlayerMatrixCoordinateY + i * kCellPixelSize));
+            playerShapeMatrix[i][j].setPosition(sf::Vector2f((playerBoardBackgroundCoordinateX + kCellPixelSize) + j * kCellPixelSize, (playerBoardBackgroundCoordinateY + 4 * kCellPixelSize) + i * kCellPixelSize));
             playerShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
 
             if (playerBoard.getCell(i, j) == CellStatus::Ship) {
@@ -485,7 +492,7 @@ void StartGame(sf::RenderWindow& window) {
 
     for (size_t i = 0; i < kArraySize; ++i) {
         for (size_t j = 0; j < kArraySize; ++j) {
-            robotShapeMatrix[i][j].setPosition(sf::Vector2f(kRobotMatrixCoordinateX + j * kCellPixelSize, kRobotMatrixCoordinateY + i * kCellPixelSize));
+            robotShapeMatrix[i][j].setPosition(sf::Vector2f((robotBoardBackgroundCoordinateX + kCellPixelSize) + j * kCellPixelSize, (robotBoardBackgroundCoordinateY + 4 * kCellPixelSize) + i * kCellPixelSize));
             robotShapeMatrix[i][j].setSize(sf::Vector2f(kCellPixelSize, kCellPixelSize));
             robotShapeMatrix[i][j].setTexture(&waterTexture);
         }
@@ -500,8 +507,10 @@ void StartGame(sf::RenderWindow& window) {
     int xHit = 0;
     int yHit = 0;
 
-    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& gameBackground, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& gameBackground, auto& playerBoardBackground, auto& robotBoardBackground, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
         window.draw(gameBackground);
+        window.draw(playerBoardBackground);
+        window.draw(robotBoardBackground);
 
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
@@ -585,7 +594,7 @@ void StartGame(sf::RenderWindow& window) {
             if (giveUpButton.isSelected()) {
                 giveUpButton.setTextFillColor(kBrown);
 
-                DrawAllEntitiesInWindow(window, gameBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+                DrawAllEntitiesInWindow(window, gameBackground, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
@@ -649,7 +658,7 @@ void StartGame(sf::RenderWindow& window) {
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
         
-        DrawAllEntitiesInWindow(window, gameBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+        DrawAllEntitiesInWindow(window, gameBackground, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
         window.display();
     }
