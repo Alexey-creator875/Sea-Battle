@@ -152,6 +152,22 @@ void Board::deleteShip(Ship s) {
         array[x][j] = CellStatus::Empty;
     }
 }
+int Board::countShip() {
+    int counter = 0;
+    for (int i = 0; i < kSize; ++i) {
+        for (int j = 0; j < kSize; ++j) {
+            if (array[i][j].getStatus() == CellStatus::Ship) {
+                if (!checkCoordinates(i - 1, j) || array[i - 1][j].getStatus() != CellStatus::Ship) {
+                    if (!checkCoordinates(i, j - 1) || array[i][j - 1].getStatus() != CellStatus::Ship) {
+                        ++counter;
+                    }
+                }
+            }
+        }
+    }
+    return counter;
+}
+
 bool Board::isShipSunk(int x, int y) {
     bool flag = true;
     int i = x;

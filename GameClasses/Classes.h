@@ -68,6 +68,7 @@ public:
 
     void placeShip(Ship s);
     void deleteShip(Ship s);
+    int countShip();
     bool isValidPlacement(Ship s);
     ShootResult shoot(int x, int y);
     bool isShipSunk(int x, int y);
