@@ -37,17 +37,22 @@ protected:
     int x;
     int y;
     int size;
-    bool pozition = true;
+    bool position = true;
 public:
     Ship();
-    Ship(int x1, int y1, int size1, bool pozition1);
+    Ship(int x1, int y1, int size1, bool position1);
     Ship(const Ship &other);
     ~Ship();
 
     int getX();
     int getY();
     int getSize();
-    bool getPozition();
+    bool getPosition();
+
+    void setX(const int x1);
+    void setY(const int y1);
+    void setSize(const int size1);
+    void setPosition(const bool position1);
 
     Ship& operator=(const Ship& obj);
 };
