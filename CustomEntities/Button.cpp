@@ -115,8 +115,8 @@ float Button::getTextOutlineThickess() const {
 
 
 void Button::setSize(sf::Vector2f size) {
-    std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    std::cout << size.x << ' ' << size.y << '\n';
+    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
+    // std::cout << size.x << ' ' << size.y << '\n';
 
     if (size.x < shape.getSize().x || size.y < shape.getSize().y) {
         return;
