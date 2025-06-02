@@ -24,24 +24,29 @@ Cell& Cell::operator=(const Cell& obj) {
 
 //методы для корабля
 Ship::Ship() {}
-Ship::Ship(int x1, int y1, int size1, bool pozition1) {
+Ship::Ship(int x1, int y1, int size1, bool position1) {
     x = x1;
     y = y1;
     size = size1;
-    pozition = pozition1;
+    position = position1;
 }
 Ship::Ship(const Ship &other) {
     x = other.x;
     y = other.y;
     size = other.size;
-    pozition = other.pozition;
+    position = other.position;
 }
 Ship::~Ship() {}
 
 int Ship::getX() { return x; }
 int Ship::getY() { return y; }
 int Ship::getSize() { return size; }
-bool Ship::getPozition() { return pozition; }
+bool Ship::getPosition() { return position; }
+
+void Ship::setX(const int x1) { x = x1; }
+void Ship::setY(const int y1) { y = y1; }
+void Ship::setSize(const int size1) { size = size1; }
+void Ship::setPosition(const bool position1) { position = position1; }
 
 Ship& Ship::operator=(const Ship& obj) {
     if (this == &obj) {
@@ -50,7 +55,7 @@ Ship& Ship::operator=(const Ship& obj) {
     x = obj.x;
     y = obj.y;
     size = obj.size;
-    pozition = obj.pozition;
+    position = obj.position;
     return *this;
 }
 
@@ -89,9 +94,9 @@ bool Board::isValidPlacement(Ship s) {
     int x = s.getX();
     int y = s.getY();
     int size = s.getSize();
-    bool pozition = s.getPozition();
+    bool position = s.getPosition();
     bool flag = true;
-    if (!pozition) {
+    if (!position) {
         flag = 0 <= y && y < kSize && 0 <= x && x + size <= kSize;
         if (!flag) {
             return flag;
@@ -124,9 +129,9 @@ void Board::placeShip(Ship s) {
     int x = s.getX();
     int y = s.getY();
     int size = s.getSize();
-    bool pozition = s.getPozition();
+    bool position = s.getPosition();
     if (!isValidPlacement(s)) { return; }
-    if (!pozition) {
+    if (!position) {
         for (int i = x; i < x + size; ++i) {
             array[i][y] = CellStatus::Ship;
         }
@@ -140,9 +145,9 @@ void Board::deleteShip(Ship s) {
     int x = s.getX();
     int y = s.getY();
     int size = s.getSize();
-    bool pozition = s.getPozition();
+    bool position = s.getPosition();
     if (!isValidPlacement(s)) { return; }
-    if (!pozition) {
+    if (!position) {
         for (int i = x; i < x + size; ++i) {
             array[i][y] = CellStatus::Empty;
         }
