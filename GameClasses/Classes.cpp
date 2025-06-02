@@ -136,6 +136,22 @@ void Board::placeShip(Ship s) {
         array[x][j] = CellStatus::Ship;
     }
 }
+void Board::deleteShip(Ship s) {
+    int x = s.getX();
+    int y = s.getY();
+    int size = s.getSize();
+    bool pozition = s.getPozition();
+    if (!isValidPlacement(s)) { return; }
+    if (!pozition) {
+        for (int i = x; i < x + size; ++i) {
+            array[i][y] = CellStatus::Empty;
+        }
+        return;
+    }
+    for (int j = y; j < y + size; ++j) {
+        array[x][j] = CellStatus::Empty;
+    }
+}
 bool Board::isShipSunk(int x, int y) {
     bool flag = true;
     int i = x;
