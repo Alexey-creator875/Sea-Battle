@@ -6,6 +6,7 @@ class Button {
  private:
     sf::Text text;
     sf::RectangleShape shape;
+    bool selected;
    //  sf::Texture backgroundBuffer;
    //  bool pushed;
 
@@ -14,10 +15,14 @@ class Button {
 
  public:
     Button() = delete;
-    Button(const sf::Font& font) : text(font), shape() {} // !
-    Button(const Button& object) : text(object.text), shape(object.shape) {} // !
+    Button(const sf::Font& font) : text(font), shape(), selected(false) {} // !
+    Button(const Button& object) : text(object.text), shape(object.shape), selected(object.selected) {} // !
 
     Button& operator=(const Button& object); // !
+
+    void select();
+    void cancelSelection();
+    bool isSelected() const;
 
     void setString(sf::String string);
     void setCharacterSize(unsigned int size);

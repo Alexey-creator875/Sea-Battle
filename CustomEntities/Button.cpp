@@ -11,8 +11,19 @@ const float kIndentY = 5.f;
 Button& Button::operator=(const Button& object) {
     text = object.text;
     shape = object.shape;
+    selected = object.selected;
 
     return *this;
+}
+
+void Button::select() {
+    selected = true;
+}
+void Button::cancelSelection() {
+    selected = false;
+}
+bool Button::isSelected() const {
+    return selected;
 }
 
 void Button::setDefaultButtonSize() {
@@ -41,7 +52,6 @@ void Button::setTextInCenter() {
     // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
     // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
 }
-
 
 void Button::setString(sf::String string) {
     text.setString(string);
