@@ -31,6 +31,21 @@ const int kMenuQuitGameButtonCoordinateY = 490;
 const float kMenuButtonsSizeX = 550;
 const float kMenuButtonsSizeY = 70;
 
+
+// константы для расстановки кораблей
+const int kBoardCellPixelSize = 45;
+const int kDemonstrationCellPixelSize = 45;
+
+const int kArrangementReturnButtonCoordinateX = 40;
+const int kArrangementReturnButtonCoordinateY = 40;
+
+const unsigned int kArrangementTitulCharacterSize = 60;
+const unsigned int kArrangementCharacterSize = 25;
+
+const int kRequiredShipsNumber = 10;
+const int kShipsVariantsNumber = 4;
+const int kShipsMaxSize = 4;
+
 // константы для игры
 const unsigned int kArraySize = 10;
 
@@ -77,9 +92,15 @@ const sf::Color kRed = sf::Color(235, 65, 65);
 bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
+    // // загружаем шрифт
+    // sf::Font helveticaFont;
+    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    //     throw std::runtime_error("failed to open file");
+    // }
+
     // загружаем шрифт
     sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -229,9 +250,15 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
     std::this_thread::sleep_for(std::chrono::milliseconds(150));
 
+    // // загружаем шрифт
+    // sf::Font helveticaFont;
+    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    //     throw std::runtime_error("failed to open file");
+    // }
+
     // загружаем шрифт
     sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -361,15 +388,348 @@ sf::String GetRulesFromFile() {
 }  // namespace
 
 namespace SeaBattleExecutor {
+bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
+    // // загружаем шрифт
+    // sf::Font helveticaFont;
+    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    //     throw std::runtime_error("failed to open file");
+    // }
+
+    // загружаем шрифт
+    sf::Font helveticaFont;
+    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // загрузка текстуры для кнопок и лейблов
+    sf::Texture parchmentTexture;
+    if (!parchmentTexture.loadFromFile("../images/IMG_0793.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // загрузка картинки заднего фона в текстуру
+    sf::Texture imageArrangementBackground;
+    if (!imageArrangementBackground.loadFromFile("../images/IMG_0799.png")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    // создание прямоугольника куда пихаем текстуру фона
+    sf::RectangleShape arrangementBackground(static_cast<sf::Vector2f>(window.getSize()));
+    arrangementBackground.setTexture(&imageArrangementBackground);
+
+    // загрузка текстуры неизведанной клетки
+    sf::Texture waterTexture;
+    if (!waterTexture.loadFromFile("../images/IMG_0756.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры неизведанной выбранной клетки
+    sf::Texture waterSelectedTexture;
+    if (!waterSelectedTexture.loadFromFile("../images/IMG_0758.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры корабля
+    sf::Texture shipTexture;
+    if (!shipTexture.loadFromFile("../images/IMG_0760.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // загрузка текстуры поля игрока
+    sf::Texture playerBoardTexture;
+    if (!playerBoardTexture.loadFromFile("../images/IMG_0822.png")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    // создание прямоугольника куда пихаем текстуру поля игрока
+    sf::RectangleShape playerBoardBackground;
+    playerBoardBackground.setSize(sf::Vector2f((kArraySize + 2) * kBoardCellPixelSize, (kArraySize + 5) * kBoardCellPixelSize));
+
+    float playerBoardBackgroundCoordinateX = (window.getSize().x / 2 - playerBoardBackground.getSize().x) / 2;
+    float playerBoardBackgroundCoordinateY = (window.getSize().y - playerBoardBackground.getSize().y) / 2;
+
+    playerBoardBackground.setPosition(sf::Vector2f(playerBoardBackgroundCoordinateX, playerBoardBackgroundCoordinateY));
+    playerBoardBackground.setTexture(&playerBoardTexture);
+
+    // создаём крутую кнопку вернуться в меню
+    Button returnButton(helveticaFont);
+    returnButton.setString(L"Вернуться в меню");
+    returnButton.setTextFillColor(kBrown);
+    returnButton.setCharacterSize(kArrangementCharacterSize);
+
+    returnButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX, kArrangementReturnButtonCoordinateY));
+    returnButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку сражаться
+    Button fightButton(helveticaFont);
+    fightButton.setString(L"Сражаться");
+    fightButton.setTextFillColor(kBrown);
+    fightButton.setCharacterSize(kArrangementCharacterSize);
+
+    fightButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 400, kArrangementReturnButtonCoordinateY));
+    fightButton.setTexture(&parchmentTexture);
+
+
+    // создаём крутую кнопку сгенерировать рандомную расстановку
+    Button randomLayoutButton(helveticaFont);
+    randomLayoutButton.setString(L"Сгенерировать");
+    randomLayoutButton.setTextFillColor(kBrown);
+    randomLayoutButton.setCharacterSize(kArrangementCharacterSize);
+
+    randomLayoutButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY));
+    randomLayoutButton.setTexture(&parchmentTexture);
+
+
+    // создаём крутую кнопку очистить борды
+    Button clearButton(helveticaFont);
+    clearButton.setString(L"Очистить");
+    clearButton.setTextFillColor(kBrown);
+    clearButton.setCharacterSize(kArrangementCharacterSize);
+
+    clearButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1200, kArrangementReturnButtonCoordinateY));
+    clearButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку поменять длину нынешнего корабля
+    Button changeShipSizeButton(helveticaFont);
+    changeShipSizeButton.setString(L"Изменить длину");
+    changeShipSizeButton.setTextFillColor(kBrown);
+    changeShipSizeButton.setCharacterSize(kArrangementCharacterSize);
+
+    changeShipSizeButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY + 600));
+    changeShipSizeButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку вращающую корабль
+    Button rotateButton(helveticaFont);
+    rotateButton.setString(L"Повернуть");
+    rotateButton.setTextFillColor(kBrown);
+    rotateButton.setCharacterSize(kArrangementCharacterSize);
+
+    rotateButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1100, kArrangementReturnButtonCoordinateY + 600));
+    rotateButton.setTexture(&parchmentTexture);
+
+    // создаём поле с отображением нынешнего корабля
+    sf::RectangleShape currentShipField;
+    currentShipField.setSize(sf::Vector2f(6 * kDemonstrationCellPixelSize, 6 * kDemonstrationCellPixelSize));
+    currentShipField.setTexture(&parchmentTexture);
+    currentShipField.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY + 200));
+
+    // создаём массив шейпов для нынешнего корабля
+    std::array<sf::RectangleShape, kShipsMaxSize> shipShapeArray;
+    for (size_t i = 0; i < kShipsMaxSize; ++i) {
+        shipShapeArray[i].setPosition(sf::Vector2f((currentShipField.getPosition().x + kDemonstrationCellPixelSize) + i * kDemonstrationCellPixelSize, currentShipField.getPosition().y + kDemonstrationCellPixelSize));
+        shipShapeArray[i].setSize(sf::Vector2f(kDemonstrationCellPixelSize, kDemonstrationCellPixelSize));
+        shipShapeArray[i].setTexture(&shipTexture);
+    }
+
+    // создание массива шейпов для игрока
+    std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
+
+    for (size_t i = 0; i < kArraySize; ++i) {
+        for (size_t j = 0; j < kArraySize; ++j) {
+            playerShapeMatrix[i][j].setPosition(sf::Vector2f((playerBoardBackgroundCoordinateX + kBoardCellPixelSize) + j * kBoardCellPixelSize, (playerBoardBackgroundCoordinateY + 4 * kBoardCellPixelSize) + i * kBoardCellPixelSize));
+            playerShapeMatrix[i][j].setSize(sf::Vector2f(kBoardCellPixelSize, kBoardCellPixelSize));
+
+            if (playerBoard.getCell(i, j) == CellStatus::Ship) {
+                playerShapeMatrix[i][j].setTexture(&shipTexture);
+            }
+
+            if (playerBoard.getCell(i, j) == CellStatus::Empty) {
+                playerShapeMatrix[i][j].setTexture(&waterTexture);
+            }
+        }
+    }
+
+
+    // playerBoard.autoPlaceShips();
+    randomPlaceShips(playerBoard);
+
+    auto DrawAllEntitiesInWindow = [] (auto& window, auto& arrangementBackground, auto& playerBoardBackground, auto& playerShapeMatrix, auto& returnButton, auto& fightButton, auto& randomLayoutButton, auto& clearButton, auto& changeLengthButton, auto& rotateButton, auto& currentShipField, auto& shipShapeArray) {
+        window.draw(arrangementBackground);
+
+        window.draw(playerBoardBackground);
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                window.draw(playerShapeMatrix[i][j]);
+            }
+        }
+
+        returnButton.draw(window);
+        fightButton.draw(window);
+        randomLayoutButton.draw(window);
+        clearButton.draw(window);
+        changeLengthButton.draw(window);
+        rotateButton.draw(window);
+
+        window.draw(currentShipField);
+        for (size_t i = 0; i < kShipsMaxSize; ++i) {
+            window.draw(shipShapeArray[i]);
+        }
+    };
+
+    auto UpdatePlayerShapeMatrix = [waterTexture, shipTexture] (auto& playerShapeMatrix, auto& playerBoard) {
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (playerBoard.getCell(i, j) == CellStatus::Empty) {
+                    playerShapeMatrix[i][j].setTexture(&waterTexture);
+                }
+
+                if (playerBoard.getCell(i, j) == CellStatus::Ship) {
+                    playerShapeMatrix[i][j].setTexture(&shipTexture);
+                }
+            }
+        }
+    };
+
+    int currentShipSize = kShipsMaxSize;
+    bool horizontally = true;
+
+    int selectedCellX = -1;
+    int selectedCellY = -1;
+
+    auto UpdateShipArray = [currentShipField] (auto& shipShapeArray, auto& currentShipSize, auto& horizontally) {
+        for (size_t i = 0; i < currentShipSize; ++i) {
+            shipShapeArray[i].setFillColor(sf::Color::White);
+        }
+
+        for (size_t i = currentShipSize; i < kShipsMaxSize; ++i) {
+            shipShapeArray[i].setFillColor(sf::Color::Transparent);
+        }
+
+        for (size_t i = 1; i < kShipsMaxSize; ++i) {
+            sf::Vector2f positionRelatedToField = (horizontally)? sf::Vector2f((i + 1) * kDemonstrationCellPixelSize, kDemonstrationCellPixelSize) : sf::Vector2f(kDemonstrationCellPixelSize, (i + 1) * kDemonstrationCellPixelSize);
+
+            shipShapeArray[i].setPosition(currentShipField.getPosition() + positionRelatedToField);
+        }
+    };
+
+    while (window.isOpen()) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return false;
+            }
+        }
+
+        window.clear();
+
+        int selectedCellX = -1;
+        int selectedCellY = -1;
+
+        returnButton.setTextFillColor(kBrown);
+        returnButton.cancelSelection();
+
+        fightButton.setTextFillColor(kBrown);
+        fightButton.cancelSelection();
+
+        randomLayoutButton.setTextFillColor(kBrown);
+        randomLayoutButton.cancelSelection();
+
+        clearButton.setTextFillColor(kBrown);
+        clearButton.cancelSelection();
+
+        changeShipSizeButton.setTextFillColor(kBrown);
+        changeShipSizeButton.cancelSelection();
+
+        rotateButton.setTextFillColor(kBrown);
+        rotateButton.cancelSelection();
+
+        UpdatePlayerShapeMatrix(playerShapeMatrix, playerBoard);
+        UpdateShipArray(shipShapeArray, currentShipSize, horizontally);
+
+        if (returnButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            returnButton.setTextFillColor(kBlue);
+            returnButton.select();
+        }
+
+        if (fightButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            fightButton.setTextFillColor(kBlue);
+            fightButton.select();
+        }
+
+        if (randomLayoutButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            randomLayoutButton.setTextFillColor(kBlue);
+            randomLayoutButton.select();
+        }
+
+        if (clearButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            clearButton.setTextFillColor(kBlue);
+            clearButton.select();
+        }
+
+        if (changeShipSizeButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            changeShipSizeButton.setTextFillColor(kBlue);
+            changeShipSizeButton.select();
+        }
+
+        if (rotateButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            rotateButton.setTextFillColor(kBlue);
+            rotateButton.select();
+        }
+
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            if (returnButton.isSelected()) {
+                returnButton.setTextFillColor(kBrown);
+
+                DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, currentShipField, shipShapeArray);
+
+                sf::Texture windowCurrentStateTexture(window.getSize());
+                windowCurrentStateTexture.update(window);
+                sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
+
+                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите вернуться в меню?")) {
+                    return false;
+                }
+            }
+
+            if (fightButton.isSelected()) {
+                return true;
+            }
+
+            if (randomLayoutButton.isSelected()) {
+                randomPlaceShips(playerBoard);
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+
+            if (clearButton.isSelected()) {
+                playerBoard.clearBoard();
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+
+            if (changeShipSizeButton.isSelected()) {
+                currentShipSize = currentShipSize % kShipsMaxSize + 1;
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+
+            if (rotateButton.isSelected()) {
+                horizontally = !horizontally;
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
+        }
+
+        DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, currentShipField, shipShapeArray);
+
+        window.display();
+    }
+
+    return true;
+}
+
+
 void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
     bool playerMove = true;
 
     // загружаем шрифт
     sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
         throw std::runtime_error("failed to open file");
     }
+
+    // // загружаем шрифт
+    // sf::Font helveticaFont;
+    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    //     throw std::runtime_error("failed to open file");
+    // }
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageGameBackground;
@@ -413,13 +773,13 @@ void StartGame(sf::RenderWindow& window) {
 
     // загрузка текстуры поля игрока
     sf::Texture playerBoardTexture;
-    if (!playerBoardTexture.loadFromFile("../images/IMG_0788.png")) {
+    if (!playerBoardTexture.loadFromFile("../images/IMG_0818.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // создание прямоугольника куда пихаем текстуру поля игрока
     sf::RectangleShape playerBoardBackground;
-    playerBoardBackground.setSize(sf::Vector2f((kArraySize + 1) * kCellPixelSize, (kArraySize + 4) * kCellPixelSize));
+    playerBoardBackground.setSize(sf::Vector2f((kArraySize + 2) * kCellPixelSize, (kArraySize + 5) * kCellPixelSize));
 
     float playerBoardBackgroundCoordinateX = (window.getSize().x / 2 - playerBoardBackground.getSize().x) / 2;
     float playerBoardBackgroundCoordinateY = (window.getSize().y - playerBoardBackground.getSize().y) / 2;
@@ -429,13 +789,13 @@ void StartGame(sf::RenderWindow& window) {
 
     // загрузка текстуры поля робота
     sf::Texture robotBoardTexture;
-    if (!robotBoardTexture.loadFromFile("../images/IMG_0789.png")) {
+    if (!robotBoardTexture.loadFromFile("../images/IMG_0819.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // создание прямоугольника куда пихаем текстуру поля робота
     sf::RectangleShape robotBoardBackground;
-    robotBoardBackground.setSize(sf::Vector2f((kArraySize + 1) * kCellPixelSize, (kArraySize + 4) * kCellPixelSize));
+    robotBoardBackground.setSize(sf::Vector2f((kArraySize + 2) * kCellPixelSize, (kArraySize + 5) * kCellPixelSize));
 
     float robotBoardBackgroundCoordinateX = (3 * window.getSize().x / 2 - robotBoardBackground.getSize().x) / 2;
     float robotBoardBackgroundCoordinateY = (window.getSize().y - robotBoardBackground.getSize().y) / 2;
@@ -461,8 +821,9 @@ void StartGame(sf::RenderWindow& window) {
     
     // создание борда для игрока
     Board playerBoard;
-    // playerBoard.autoPlaceShips();
-    randomPlaceShips(playerBoard);
+    if (!ArrangePlayerShips(window, playerBoard)) {
+        return;
+    }
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -601,7 +962,7 @@ void StartGame(sf::RenderWindow& window) {
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
                 
                 if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите сдаться?")) {
-                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Облава! Вы проиграли :(");
+                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Поражение! В следующий раз получится :(");
                     return;
                 }
 
@@ -692,13 +1053,17 @@ void Menu(sf::RenderWindow& window) {
     sf::RectangleShape backGround(static_cast<sf::Vector2f>(window.getSize()));
     backGround.setTexture(&imageBackground);
 
-
-
     // загружаем шрифт
     sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
         throw std::runtime_error("failed to open file");
     }
+
+    // // загружаем шрифт
+    // sf::Font helveticaFont;
+    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+    //     throw std::runtime_error("failed to open file");
+    // }
 
     // создаём лейбл для названия игры
     sf::Text titul(helveticaFont, sf::String(L"Морской бой"));
