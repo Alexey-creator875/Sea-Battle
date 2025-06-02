@@ -85,7 +85,7 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("../images/IMG_0796.png")) {
+    if (!backgroundTexture.loadFromFile("../images/IMG_0801.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -237,7 +237,7 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("../images/IMG_0796.png")) {
+    if (!backgroundTexture.loadFromFile("../images/IMG_0801.png")) {
         throw std::runtime_error("failed to open file");
     }
 
