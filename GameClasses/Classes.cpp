@@ -146,7 +146,7 @@ void Board::deleteShip(Ship s) {
     int y = s.getY();
     int size = s.getSize();
     bool position = s.getPosition();
-    if (!isValidPlacement(s)) { return; }
+    //if (!isValidPlacement(s)) { return; }
     if (!position) {
         for (int i = x; i < x + size; ++i) {
             array[i][y] = CellStatus::Empty;
