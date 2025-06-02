@@ -66,13 +66,15 @@ const int kRobotMatrixCoordinateY = 150;
 const int kCellPixelSize = 30;
 const int kCellOutlineThickness = 2;
 
-// константы для кнопки выхода из игры
+// константы для кнопки сдаться
 
-const unsigned int kGameExitButtonSizeX = 50;
-const unsigned int kGameExitButtonSizeY = 50;
+const unsigned int kGameGiveUpButtonSizeX = 50;
+const unsigned int kGameGiveUpButtonSizeY = 50;
 
-const int kGameExitButtonCoordinateX = 40;
-const int kGameExitButtonCoordinateY = 40;
+const int kGameGiveUpButtonCoordinateX = 40;
+const int kGameGiveUpButtonCoordinateY = 40;
+
+const unsigned int kGameGiveUpButtonCharacterSize = 25;
 
 // константы для окна вывода результатов игры
 
@@ -205,8 +207,6 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
     // размещение кнопки нет
     noButton.setPosition(sf::Vector2f(3 * yesButtonCoordinateX, yesButtonCoordinateY));
 
-    int num = 0;
-
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -216,30 +216,30 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
         }
 
         window.clear();
+
         yesButton.setTextFillColor(kBrown);
         noButton.setTextFillColor(kBrown);
-        num = 0;
+
+        yesButton.cancelSelection();
+        noButton.cancelSelection();
 
         if (yesButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
             yesButton.setTextFillColor(kGreen);
-            num = 1;
+            yesButton.select();
         }
 
         if (noButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
             noButton.setTextFillColor(kRed);
-            num = 2;
+            noButton.select();
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            switch (num) {
-                case 0:
-                    break;
-                case 1:
-                    return true;
-                    break;
-                case 2:
-                    return false;
-                    break;
+            if (yesButton.isSelected()) {
+                return true;
+            }
+
+            if (noButton.isSelected()) {
+                return false;
             }
         }
 
@@ -336,8 +336,6 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
     float continueButtonCoordinateY = informationSizeY + 2 * kChildWindowIndent;
     continueButton.setPosition(sf::Vector2f(continueButtonCoordinateX, continueButtonCoordinateY));
 
-    bool continueButtonChosen = false;
-
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -349,15 +347,15 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
         window.clear();
 
         continueButton.setTextFillColor(kBrown);
-        continueButtonChosen = false;
+        continueButton.cancelSelection();
 
         if (continueButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - childWindowSprite.getPosition())) {
             continueButton.setTextFillColor(kBlue);
-            continueButtonChosen = true;
+            continueButton.select();
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            if (continueButtonChosen) {
+            if (continueButton.isSelected()) {
                 return;
             }
         }
@@ -403,6 +401,12 @@ void StartGame(sf::RenderWindow& window) {
     bool gameContinueExecution = true;
     bool playerMove = true;
 
+    // загружаем шрифт
+    sf::Font helveticaFont;
+    if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
+        throw std::runtime_error("failed to open file");
+    }
+
     // закгрузка текстуры крестика
     sf::Texture crossTexture;
     if (!crossTexture.loadFromFile("../images/cross.webp.png")) {
@@ -415,21 +419,28 @@ void StartGame(sf::RenderWindow& window) {
         throw std::runtime_error("failed to load image");
     }
 
-    // загрузка текстуры для кнопки выхода из игры
-    sf::Texture exitButtonTexture;
-    if (!exitButtonTexture.loadFromFile("../images/exit_image.png")) {
-        throw std::runtime_error("failed to load image");
+    // // загрузка текстуры для кнопки выхода из игры
+    // sf::Texture exitButtonTexture;
+    // if (!exitButtonTexture.loadFromFile("../images/exit_image.png")) {
+    //     throw std::runtime_error("failed to load image");
+    // }
+
+    // загрузка текстуры кнопок
+    sf::Texture buttonTexture;
+    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
+        throw std::runtime_error("failed to open file");
     }
 
-    // создание кнопки для выхода из игры
-    sf::RectangleShape exitButton;
-    exitButton.setSize(sf::Vector2f(kGameExitButtonSizeX, kGameExitButtonSizeY));
-    exitButton.setPosition(sf::Vector2f(kGameExitButtonCoordinateX, kGameExitButtonCoordinateY));
-    exitButton.setTexture(&exitButtonTexture);
-    exitButton.setOutlineThickness(1);
-    exitButton.setOutlineColor(sf::Color::White);
+    // создаём крутую кнопку сдаться
+    Button giveUpButton(helveticaFont);
+    giveUpButton.setString(L"Сдаться");
+    giveUpButton.setTextFillColor(kBrown);
+    giveUpButton.setCharacterSize(kGameGiveUpButtonCharacterSize);
 
-    bool exitButtonChosen = false;
+    // float quitGameCoolButtonCoordinateX = (window.getSize().x - quitGameCoolButton.getSize().x) / 2;
+
+    giveUpButton.setPosition(sf::Vector2f(kGameGiveUpButtonCoordinateX, kGameGiveUpButtonCoordinateY));
+    giveUpButton.setTexture(&buttonTexture);
     
     // создание борда для игрока
     Board playerBoard;
@@ -480,7 +491,7 @@ void StartGame(sf::RenderWindow& window) {
     int robotShootX = 0;
     int robotShootY = 0;
 
-    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& exitButton) {
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
                 window.draw(playerShapeMatrix[i][j]);
@@ -493,7 +504,7 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        window.draw(exitButton);
+        giveUpButton.draw(window);
     };
 
     while (window.isOpen() && gameContinueExecution) {
@@ -511,26 +522,26 @@ void StartGame(sf::RenderWindow& window) {
 
         window.clear(sf::Color::White);
 
-        exitButton.setOutlineColor(sf::Color::White);
-        bool exitButtonChosen = false;
+        giveUpButton.setTextFillColor(kBrown);
+        giveUpButton.cancelSelection();
 
-        if (exitButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-            exitButtonChosen = true;
-        }
-
-        if (exitButtonChosen) {
-            exitButton.setOutlineColor(sf::Color::Red);
+        if (giveUpButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            giveUpButton.setTextFillColor(kBlue);
+            giveUpButton.select();
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            if (exitButtonChosen) {
-                DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, exitButton);
+            if (giveUpButton.isSelected()) {
+                giveUpButton.setTextFillColor(kBrown);
+
+                DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
                 
-                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите вернуться в меню?")) {
+                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите сдаться?")) {
+                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Облава! Вы проиграли :(");
                     return;
                 }
 
@@ -614,7 +625,7 @@ void StartGame(sf::RenderWindow& window) {
             }
         }
 
-        DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, exitButton);
+        DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
         window.display();
     }
@@ -714,7 +725,6 @@ void Menu(sf::RenderWindow& window) {
         quitGameCoolButton.draw(window);
     };
 
-    Action menuAction = Action::Wait;
     sf::Texture windowCurrentStateTexture(window.getSize());
     windowCurrentStateTexture.update(window);
     sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
@@ -733,55 +743,56 @@ void Menu(sf::RenderWindow& window) {
         showRulesButton.setTextFillColor(kBrown);
         quitGameCoolButton.setTextFillColor(kBrown);
 
-        menuAction = Action::Wait;
+        startGameButton.cancelSelection();
+        showRulesButton.cancelSelection();
+        quitGameCoolButton.cancelSelection();
+
 
         if (startGameButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             startGameButton.setTextFillColor(kBlue);
-            menuAction = Action::StartGame;
+            startGameButton.select();
         }
 
         if (showRulesButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             showRulesButton.setTextFillColor(kBlue);
-            menuAction = Action::ShowRules;
+            showRulesButton.select();
         }
 
         if (quitGameCoolButton.getLocalBounds().contains(static_cast<sf::Vector2f>(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)) - quitGameCoolButton.getPosition()))) {
             quitGameCoolButton.setTextFillColor(kBlue);
-            menuAction = Action::QuitGame;
+            quitGameCoolButton.select();
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            switch (menuAction) {
-                case Action::Wait:
-                    break;
-                case Action::StartGame:
+            if (startGameButton.isSelected()) {
+                return;
+            }
+
+            if (showRulesButton.isSelected()) {
+                showRulesButton.setTextFillColor(kBlue);
+                DrawAllEntitiesInWindow(window, backGround, titul, startGameButton, showRulesButton, quitGameCoolButton);
+
+                windowCurrentStateTexture.update(window);
+                windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
+
+                ShowChildWindowWithInformation(window, windowCurrentStateSprite, GetRulesFromFile());
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+            }
+
+            if (quitGameCoolButton.isSelected()) {
+                quitGameCoolButton.setTextFillColor(kBrown);
+                DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, showRulesButton, quitGameCoolButton);
+
+                windowCurrentStateTexture.update(window);
+                windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
+                
+                if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите выйти из игры?")) {
+                    window.close();
                     return;
-                case Action::ShowRules:
-                    showRulesButton.setTextFillColor(kBlue);
-                    DrawAllEntitiesInWindow(window, backGround, titul, startGameButton, showRulesButton, quitGameCoolButton);
+                }
 
-                    windowCurrentStateTexture.update(window);
-                    windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
-
-                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, GetRulesFromFile());
-
-                    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-                    break;
-                case Action::QuitGame:
-                    quitGameCoolButton.setTextFillColor(kBrown);
-                    DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, showRulesButton, quitGameCoolButton);
-
-                    windowCurrentStateTexture.update(window);
-                    windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
-                    
-                    if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите выйти из игры?")) {
-                        window.close();
-                        return;
-                    }
-
-                    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-
-                    break;
+                std::this_thread::sleep_for(std::chrono::milliseconds(150));
             }
         }
 
