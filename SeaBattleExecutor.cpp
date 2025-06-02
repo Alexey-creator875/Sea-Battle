@@ -19,11 +19,7 @@
 
 
 namespace {
-const int kDeffaultWindowLenght = 1440;
-const int kDeffaultWindowHeight = 900;
-
 // константы для меню
-
 const unsigned int kMenuTitulCharacterSize = 100;
 const unsigned int kMenuButtonsCharacterSize = 40;
 
@@ -34,25 +30,6 @@ const int kMenuQuitGameButtonCoordinateY = 490;
 
 const float kMenuButtonsSizeX = 550;
 const float kMenuButtonsSizeY = 70;
-
-
-// константы для окна с правилами
-const unsigned int kRulesWindowSizeX = 900;
-const unsigned int kRulesWindowSizeY = 500;
-
-const unsigned int kRulesCharacterSize = 20;
-
-const int kRulesTextCoordinateY = 10;
-const int kRulesButtonCoordinateY = 400;
-
-// константы для окна проверки выхода
-const unsigned int kCheckWindowSizeX = 600;
-const unsigned int kCheckWindowSizeY = 300;
-
-const unsigned int kExitCheckCharacterSize = 40;
-
-const int kExitCheckQuestionCoordinateY = 50;
-const int kExitCheckButtonsCoordinateY = 150;
 
 // константы для игры
 const unsigned int kArraySize = 10;
@@ -67,7 +44,6 @@ const int kCellPixelSize = 30;
 const int kCellOutlineThickness = 2;
 
 // константы для кнопки сдаться
-
 const unsigned int kGameGiveUpButtonSizeX = 50;
 const unsigned int kGameGiveUpButtonSizeY = 50;
 
@@ -76,15 +52,6 @@ const int kGameGiveUpButtonCoordinateY = 40;
 
 const unsigned int kGameGiveUpButtonCharacterSize = 25;
 
-// константы для окна вывода результатов игры
-
-const unsigned int kResultsWindowSizeX = 600;
-const unsigned int kResultsWindowSizeY = 300;
-
-const unsigned int kResultsWindowCharacterSize = 40;
-
-const int kResultsTextCoordinateY = 50;
-const int kReturnButtonCoordinateY = 150;
 
 // константы для дочерних окон
 const unsigned int kChildWindowMinSizeX = 900;
@@ -95,10 +62,7 @@ const unsigned int kChildWindowMaxCharacterSize = 40;
 const float kChildWindowButtonSizeX = 100.f;
 const float kChildWindowButtonSizeY = 70.f;
 
-
 // константы для дочернего окна с дихотомическим вопросом
-const int kChildWindowQuestionCoordinateY = 50;
-const int kChildWindowButtonsCoordinateY = 150;
 
 // константы для дочернего окна с информацией
 
@@ -490,6 +454,9 @@ void StartGame(sf::RenderWindow& window) {
 
     int robotShootX = 0;
     int robotShootY = 0;
+    bool hittedShip = false;
+    int xHit = 0;
+    int yHit = 0;
 
     auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
         for (size_t i = 0; i < kArraySize; ++i) {
@@ -612,18 +579,63 @@ void StartGame(sf::RenderWindow& window) {
         }
 
         if (!playerMove) {
-            if (randomShoot(playerBoard, robotShootX, robotShootY) == ShootResult::Miss) {
-                playerMove = true;
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            if (!hittedShip) {
+                ShootResult shootResult = randomShoot(playerBoard, robotShootX, robotShootY);
 
+                if (shootResult == ShootResult::Miss) {
+                    playerMove = true;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
+
+                if (shootResult == ShootResult::Hit) {
+                    xHit = robotShootX;
+                    yHit = robotShootY;
+                    hittedShip = true;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
+
+                if (shootResult == ShootResult::Kill) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
             }
-        } else if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            if (numi >= 0 && numj >= 0) {
-                if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
-                    playerMove = false;
+
+            if (hittedShip) {
+                ShootResult shootResult = smartShoot(playerBoard, xHit, yHit, robotShootX, robotShootY);
+
+                if (shootResult == ShootResult::Miss) {
+                    playerMove = true;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
+
+                if (shootResult == ShootResult::Hit) {
+                    xHit = robotShootX;
+                    yHit = robotShootY;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
+
+                if (shootResult == ShootResult::Kill) {
+                    hittedShip = false;
+                    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                    continue;
+                }
+            }
+        } else if (playerMove) {
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                if (numi >= 0 && numj >= 0) {
+                    if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
+                        playerMove = false;
+                    }
                 }
             }
         }
+        
+        
+        
 
         DrawAllEntitiesInWindow(window, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
@@ -645,7 +657,7 @@ void StartGame(sf::RenderWindow& window) {
 void Menu(sf::RenderWindow& window) {
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageBackground;
-    if (!imageBackground.loadFromFile("../images/background.jpg")) {
+    if (!imageBackground.loadFromFile("../images/IMG_0799.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -656,7 +668,7 @@ void Menu(sf::RenderWindow& window) {
     }
 
     // создание прямоугольника куда пихаем текстуру фона
-    sf::RectangleShape backGround(sf::Vector2f(kDeffaultWindowLenght, kDeffaultWindowHeight));
+    sf::RectangleShape backGround(static_cast<sf::Vector2f>(window.getSize()));
     backGround.setTexture(&imageBackground);
 
 
