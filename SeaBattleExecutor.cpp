@@ -16,6 +16,7 @@
 #include <string>
 #include <fstream>
 #include <array>
+#include <map>
 
 
 namespace {
@@ -507,6 +508,15 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
     rotateButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1100, kArrangementReturnButtonCoordinateY + 600));
     rotateButton.setTexture(&parchmentTexture);
 
+    // создаём крутую кнопку отменяющую размещение корабля
+    Button undoButton(helveticaFont);
+    undoButton.setString(L"Отменить");
+    undoButton.setTextFillColor(kBrown);
+    undoButton.setCharacterSize(kArrangementCharacterSize);
+
+    undoButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1100, kArrangementReturnButtonCoordinateY + 800));
+    undoButton.setTexture(&parchmentTexture);
+
     // создаём поле с отображением нынешнего корабля
     sf::RectangleShape currentShipField;
     currentShipField.setSize(sf::Vector2f(6 * kDemonstrationCellPixelSize, 6 * kDemonstrationCellPixelSize));
@@ -543,7 +553,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
     // playerBoard.autoPlaceShips();
     randomPlaceShips(playerBoard);
 
-    auto DrawAllEntitiesInWindow = [] (auto& window, auto& arrangementBackground, auto& playerBoardBackground, auto& playerShapeMatrix, auto& returnButton, auto& fightButton, auto& randomLayoutButton, auto& clearButton, auto& changeLengthButton, auto& rotateButton, auto& currentShipField, auto& shipShapeArray) {
+    auto DrawAllEntitiesInWindow = [] (auto& window, auto& arrangementBackground, auto& playerBoardBackground, auto& playerShapeMatrix, auto& returnButton, auto& fightButton, auto& randomLayoutButton, auto& clearButton, auto& changeLengthButton, auto& rotateButton, auto& undoButton, auto& currentShipField, auto& shipShapeArray) {
         window.draw(arrangementBackground);
 
         window.draw(playerBoardBackground);
@@ -559,6 +569,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         clearButton.draw(window);
         changeLengthButton.draw(window);
         rotateButton.draw(window);
+        undoButton.draw(window);
 
         window.draw(currentShipField);
         for (size_t i = 0; i < kShipsMaxSize; ++i) {
@@ -585,6 +596,24 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
     int selectedCellX = -1;
     int selectedCellY = -1;
+
+    std::map<int, int> shipsCountMap;
+
+    auto ResetShipsCountMap = [] (auto& shipsCountMap) {
+        for (int size = 1; size <= kShipsMaxSize; ++size) {
+            shipsCountMap[size] = kShipsMaxSize - size + 1;
+        }
+    };
+
+    auto FillShipsCountMap = [] (auto& shipsCountMap) {
+        for (int size = 1; size <= kShipsMaxSize; ++size) {
+            shipsCountMap[size] = 0;
+        }
+    };
+
+    FillShipsCountMap(shipsCountMap);
+
+    std::stack<Ship> shipsPlacementLog;
 
     auto UpdateShipArray = [currentShipField] (auto& shipShapeArray, auto& currentShipSize, auto& horizontally) {
         for (size_t i = 0; i < currentShipSize; ++i) {
@@ -633,6 +662,9 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         rotateButton.setTextFillColor(kBrown);
         rotateButton.cancelSelection();
 
+        undoButton.setTextFillColor(kBrown);
+        undoButton.cancelSelection();
+
         UpdatePlayerShapeMatrix(playerShapeMatrix, playerBoard);
         UpdateShipArray(shipShapeArray, currentShipSize, horizontally);
 
@@ -666,11 +698,48 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
             rotateButton.select();
         }
 
+        if (undoButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+            undoButton.setTextFillColor(kBlue);
+            undoButton.select();
+        }
+
+        if (playerBoard.countShip() < kRequiredShipsNumber) {
+            for (size_t i = 0; i < kArraySize; ++i) {
+                for (size_t j = 0; j < kArraySize; ++j) {
+                    if (playerBoard.getCell(i, j) == CellStatus::Ship) {
+                        continue;
+                    }
+
+                    if (playerShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
+                        selectedCellX = i;
+                        selectedCellY = j;
+                    }
+                }
+            }
+
+            if (selectedCellX >= 0 && selectedCellY >= 0) {
+                playerShapeMatrix[selectedCellX][selectedCellY].setTexture(&waterSelectedTexture);
+            }
+
+            if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+                if (selectedCellX >= 0 && selectedCellY >= 0 && shipsCountMap[currentShipSize] > 0) {
+                    Ship currentShip(selectedCellX, selectedCellY, currentShipSize, horizontally);
+
+                    if (playerBoard.isValidPlacement(currentShip)) {
+                        playerBoard.placeShip(currentShip);
+                        shipsPlacementLog.push(currentShip);
+                        --shipsCountMap[currentShipSize];
+                    }
+
+                }
+            }
+        }
+
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             if (returnButton.isSelected()) {
                 returnButton.setTextFillColor(kBrown);
 
-                DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, currentShipField, shipShapeArray);
+                DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
 
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
@@ -687,11 +756,15 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
             if (randomLayoutButton.isSelected()) {
                 randomPlaceShips(playerBoard);
+                shipsPlacementLog = std::stack<Ship>();
+                FillShipsCountMap(shipsCountMap);
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
             if (clearButton.isSelected()) {
                 playerBoard.clearBoard();
+                shipsPlacementLog = std::stack<Ship>();
+                ResetShipsCountMap(shipsCountMap);
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
@@ -704,9 +777,18 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
                 horizontally = !horizontally;
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
+
+            if (undoButton.isSelected() && !shipsPlacementLog.empty()) {
+                // std::cout << shipsPlacementLog.size() << '\n';
+                playerBoard.deleteShip(shipsPlacementLog.top());
+                shipsPlacementLog.pop();
+                // playerBoard.deleteShip(Ship(0, 0, 3, true));
+                // std::cout << (playerBoard.getCell(0, 0) == CellStatus::Ship) << ' ' << '\n';
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            }
         }
 
-        DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, currentShipField, shipShapeArray);
+        DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
 
         window.display();
     }
