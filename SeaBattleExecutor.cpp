@@ -360,7 +360,7 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
 sf::String GetRulesFromFile() {
     std::string text;
 
-    std::ifstream rulesFile("../images/rules.txt");
+    std::ifstream rulesFile("../assets/Texts/rules.txt");
 
     if (!rulesFile) {
         throw std::runtime_error("failed to open file");
