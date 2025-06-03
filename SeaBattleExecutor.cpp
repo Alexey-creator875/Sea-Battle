@@ -231,14 +231,15 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            pushButtonSound.play();
-            Delay::Delay(kSoundDelay);
-
             if (yesButton.isSelected()) {
+                pushButtonSound.play();
+                Delay::Delay(kSoundDelay);
                 return true;
             }
 
             if (noButton.isSelected()) {
+                pushButtonSound.play();
+                Delay::Delay(kSoundDelay);
                 return false;
             }
         }
@@ -363,10 +364,9 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            pushButtonSound.play();
-            Delay::Delay(kSoundDelay);
-
             if (continueButton.isSelected()) {
+                pushButtonSound.play();
+                Delay::Delay(kSoundDelay);
                 return;
             }
         }
@@ -671,11 +671,13 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         }
     };
 
-    int currentShipSize = kShipsMaxSize;
-    bool horizontally = true;
+    // int currentShipSize = kShipsMaxSize;
+    // bool horizontally = true;
 
     int selectedCellX = -1;
     int selectedCellY = -1;
+
+    Ship currentShip(selectedCellX, selectedCellY, kShipsMaxSize, true);
 
     std::map<int, int> shipsCountMap;
 
@@ -695,17 +697,17 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
     std::stack<Ship> shipsPlacementLog;
 
-    auto UpdateShipArray = [currentShipField] (auto& shipShapeArray, auto& currentShipSize, auto& horizontally) {
-        for (size_t i = 0; i < currentShipSize; ++i) {
+    auto UpdateShipArray = [currentShipField] (auto& shipShapeArray, auto& currentShip) {
+        for (size_t i = 0; i < currentShip.getSize(); ++i) {
             shipShapeArray[i].setFillColor(sf::Color::White);
         }
 
-        for (size_t i = currentShipSize; i < kShipsMaxSize; ++i) {
+        for (size_t i = currentShip.getSize(); i < kShipsMaxSize; ++i) {
             shipShapeArray[i].setFillColor(sf::Color::Transparent);
         }
 
         for (size_t i = 1; i < kShipsMaxSize; ++i) {
-            sf::Vector2f positionRelatedToField = (horizontally)? sf::Vector2f((i + 1) * kDemonstrationCellPixelSize, kDemonstrationCellPixelSize) : sf::Vector2f(kDemonstrationCellPixelSize, (i + 1) * kDemonstrationCellPixelSize);
+            sf::Vector2f positionRelatedToField = (currentShip.getPosition())? sf::Vector2f((i + 1) * kDemonstrationCellPixelSize, kDemonstrationCellPixelSize) : sf::Vector2f(kDemonstrationCellPixelSize, (i + 1) * kDemonstrationCellPixelSize);
 
             shipShapeArray[i].setPosition(currentShipField.getPosition() + positionRelatedToField);
         }
@@ -746,7 +748,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         undoButton.cancelSelection();
 
         UpdatePlayerShapeMatrix(playerShapeMatrix, playerBoard);
-        UpdateShipArray(shipShapeArray, currentShipSize, horizontally);
+        UpdateShipArray(shipShapeArray, currentShip);
 
         if (returnButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             returnButton.setTextFillColor(kBlue);
@@ -802,13 +804,14 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
             }
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                if (selectedCellX >= 0 && selectedCellY >= 0 && shipsCountMap[currentShipSize] > 0) {
-                    Ship currentShip(selectedCellX, selectedCellY, currentShipSize, horizontally);
+                if (selectedCellX >= 0 && selectedCellY >= 0 && shipsCountMap[currentShip.getSize()] > 0) {
+                    currentShip.setX(selectedCellX);
+                    currentShip.setY(selectedCellY);
 
                     if (playerBoard.isValidPlacement(currentShip)) {
                         playerBoard.placeShip(currentShip);
                         shipsPlacementLog.push(currentShip);
-                        --shipsCountMap[currentShipSize];
+                        --shipsCountMap[currentShip.getSize()];
                     }
 
                 }
@@ -816,9 +819,8 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            pushButtonSound.play();
-
             if (returnButton.isSelected()) {
+                pushButtonSound.play();
                 returnButton.setTextFillColor(kBrown);
 
                 DrawAllEntitiesInWindow(window, arrangementBackground, arrangementTitul, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
@@ -833,30 +835,37 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
             }
 
             if (fightButton.isSelected() && playerBoard.countShip() == kRequiredShipsNumber) {
+                pushButtonSound.play();
+                Delay::Delay(kSoundDelay);
                 return true;
             }
 
             if (randomLayoutButton.isSelected()) {
+                pushButtonSound.play();
                 randomPlaceShips(playerBoard);
                 shipsPlacementLog = std::stack<Ship>();
                 FillShipsCountMap(shipsCountMap);
             }
 
             if (clearButton.isSelected()) {
+                pushButtonSound.play();
                 playerBoard.clearBoard();
                 shipsPlacementLog = std::stack<Ship>();
                 ResetShipsCountMap(shipsCountMap);
             }
 
             if (changeShipSizeButton.isSelected()) {
-                currentShipSize = currentShipSize % kShipsMaxSize + 1;
+                pushButtonSound.play();
+                currentShip.setSize(currentShip.getSize() % kShipsMaxSize + 1);
             }
 
             if (rotateButton.isSelected()) {
-                horizontally = !horizontally;
+                pushButtonSound.play();
+                currentShip.setPosition(!currentShip.getPosition());
             }
 
             if (undoButton.isSelected() && !shipsPlacementLog.empty()) {
+                pushButtonSound.play();
                 playerBoard.deleteShip(shipsPlacementLog.top());
                 ++shipsCountMap[shipsPlacementLog.top().getSize()];
                 shipsPlacementLog.pop();
@@ -1137,9 +1146,8 @@ void StartGame(sf::RenderWindow& window) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            pushButtonSound.play();
-
             if (giveUpButton.isSelected()) {
+                pushButtonSound.play();
                 giveUpButton.setTextFillColor(kBrown);
 
                 DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
@@ -1378,15 +1386,14 @@ void Menu(sf::RenderWindow& window) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            pushButtonSound.play();
-            // Delay::Delay(kSoundDelay);
-
             if (startGameButton.isSelected()) {
+                pushButtonSound.play();
                 Delay::Delay(kSoundDelay); 
                 return;
             }
 
             if (showRulesButton.isSelected()) {
+                pushButtonSound.play();
                 showRulesButton.setTextFillColor(kBlue);
                 DrawAllEntitiesInWindow(window, backGround, titul, startGameButton, showRulesButton, quitGameCoolButton);
 
@@ -1399,6 +1406,7 @@ void Menu(sf::RenderWindow& window) {
             }
 
             if (quitGameCoolButton.isSelected()) {
+                pushButtonSound.play();
                 quitGameCoolButton.setTextFillColor(kBrown);
                 DrawAllEntitiesInWindow(window, backGround, titul,startGameButton, showRulesButton, quitGameCoolButton);
 
