@@ -858,6 +858,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
             if (undoButton.isSelected() && !shipsPlacementLog.empty()) {
                 playerBoard.deleteShip(shipsPlacementLog.top());
+                ++shipsCountMap[shipsPlacementLog.top().getSize()];
                 shipsPlacementLog.pop();
             }
 
