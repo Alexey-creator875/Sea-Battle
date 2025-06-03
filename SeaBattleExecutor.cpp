@@ -1118,6 +1118,17 @@ void StartGame(sf::RenderWindow& window) {
         }
     };
 
+    // раскрыть оставшиеся корабли
+    auto RevealRobotBoard = [shipTexture] (auto& robotShapeMatrix, auto& robotBoard) {
+        for (size_t i = 0; i < kArraySize; ++i) {
+            for (size_t j = 0; j < kArraySize; ++j) {
+                if (robotBoard.getCell(i, j) == CellStatus::Ship) {
+                    robotShapeMatrix[i][j].setTexture(&shipTexture);
+                }
+            }
+        }
+    };
+
     while (window.isOpen() && gameContinueExecution) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
@@ -1135,6 +1146,7 @@ void StartGame(sf::RenderWindow& window) {
 
         if (playerBoard.allShipsSunk() || robotBoard.allShipsSunk()) {
             gameContinueExecution = false;
+            RevealRobotBoard(robotShapeMatrix, robotBoard);
             DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
             window.display();
             continue;
@@ -1157,6 +1169,13 @@ void StartGame(sf::RenderWindow& window) {
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
                 
                 if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите сдаться?")) {
+                    RevealRobotBoard(robotShapeMatrix, robotBoard);
+
+                    DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+
+                    windowCurrentStateTexture.update(window);
+                    windowCurrentStateSprite.setTexture(windowCurrentStateTexture);
+
                     sf::String text = L"Поражение! В следующий раз получится :(";
                     text += L"\nКоличество выстрелов: " + std::to_wstring(playerStatistics.shootsNumber);
                     text += L"\nУничтожено кораблей: " +  std::to_wstring(playerStatistics.killedShipsNumber);
@@ -1238,6 +1257,9 @@ void StartGame(sf::RenderWindow& window) {
 
         window.display();
     }
+
+    RevealRobotBoard(robotShapeMatrix, robotBoard);
+    DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
     sf::Texture windowCurrentStateTexture(window.getSize());
     windowCurrentStateTexture.update(window);
