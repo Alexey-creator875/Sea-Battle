@@ -1452,6 +1452,16 @@ void Menu(sf::RenderWindow& window) {
 void RunApplication() {
     sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), L"Морской бой", sf::State::Fullscreen);
 
+    sf::Music music;
+
+    if (!music.openFromFile("../assets/Music/musicFromPiratesOfTheCaribbean.mp3")) {
+        throw std::runtime_error("failed to load image");
+    }
+
+    music.setLooping(true);
+    music.setVolume(kDeffaultVolume);
+    music.play();
+
     while (window.isOpen()) {
         Menu(window);
 
