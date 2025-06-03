@@ -1,12 +1,12 @@
 #include "Button.h"
-#include <iostream>
+
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 namespace {
 const float kIndentX = 10.f;
 const float kIndentY = 5.f;
-
-}
+}  // namespace
 
 Button& Button::operator=(const Button& object) {
     text = object.text;
@@ -34,23 +34,10 @@ void Button::setDefaultButtonSize() {
 }
 
 void Button::setTextInCenter() {
-    // std::cout << shape.getSize().x << ' ' << text.getPosition().x << ' ' << text.getLocalBounds().getCenter().x << '\n';
-
-
     float textCoordinateX = (shape.getSize().x / 2) - text.getLocalBounds().getCenter().x;
     float textCoordinateY = (shape.getSize().y / 2) - text.getLocalBounds().getCenter().y;
 
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
-    // std::cout << textCoordinateX << ' ' << textCoordinateY << '\n';
-
     text.setPosition(shape.getPosition() + sf::Vector2f(textCoordinateX, textCoordinateY));
-
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
 }
 
 void Button::setString(sf::String string) {
@@ -62,23 +49,9 @@ void Button::setString(sf::String string) {
 
 void Button::setCharacterSize(unsigned int size) {
     text.setCharacterSize(size);
-
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    // std::cout << (2 * text.getLocalBounds().getCenter().x) << ' ' << (2 * text.getLocalBounds().getCenter().y) << '\n';
-
-
     setDefaultButtonSize();
-
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    // std::cout << (2 * text.getLocalBounds().getCenter().x) << ' ' << (2 * text.getLocalBounds().getCenter().y) << '\n';
-
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-
     setTextInCenter();
-
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
 }
-
 
 void Button::setTextFillColor(sf::Color color) {
     text.setFillColor(color);
@@ -100,7 +73,6 @@ unsigned int Button::getCharacterSize() const {
     return text.getCharacterSize();
 }
 
-
 sf::Color Button::getTextFillColor() const {
     return text.getFillColor();
 }
@@ -113,43 +85,19 @@ float Button::getTextOutlineThickess() const {
     return text.getOutlineThickness();
 }
 
-
 void Button::setSize(sf::Vector2f size) {
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    // std::cout << size.x << ' ' << size.y << '\n';
-
     if (size.x < shape.getSize().x || size.y < shape.getSize().y) {
         return;
     }
 
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    // std::cout << size.x << ' ' << size.y << '\n';
-
     shape.setSize(size);
     setTextInCenter();
-
-    // std::cout << shape.getSize().x << ' ' << shape.getSize().y << '\n';
-    // std::cout << (2 * text.getLocalBounds().getCenter().x) << ' ' << (2 * text.getLocalBounds().getCenter().y) << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-
 }
 
 void Button::setPosition(sf::Vector2f position) {
-    // std::cout << "Set position:\n";
-    // std::cout << position.x << ' ' << position.y << '\n';
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
-
     shape.setPosition(position);
 
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
-
     setTextInCenter();
-    
-    // std::cout << shape.getPosition().x << ' ' << shape.getPosition().y << '\n';
-    // std::cout << text.getPosition().x << ' ' << text.getPosition().y << '\n';
 }
 
 void Button::setFillColor(sf::Color color) {
@@ -167,7 +115,6 @@ void Button::setOutlineThickess(float thickness) {
 void Button::setTexture(const sf::Texture* texture) {
     shape.setTexture(texture);
 }
-
 
 sf::Vector2f Button::getSize() const {
     return shape.getSize();
@@ -200,7 +147,6 @@ sf::FloatRect Button::getGlobalBounds() const {
 sf::FloatRect Button::getLocalBounds() const {
     return shape.getLocalBounds();
 }
-
 
 void Button::draw(sf::RenderWindow& window) {
     window.draw(shape);

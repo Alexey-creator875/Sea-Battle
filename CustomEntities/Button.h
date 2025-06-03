@@ -7,18 +7,15 @@ class Button {
     sf::Text text;
     sf::RectangleShape shape;
     bool selected;
-   //  sf::Texture backgroundBuffer;
-   //  bool pushed;
 
     void setDefaultButtonSize();
     void setTextInCenter();
 
  public:
     Button() = delete;
-    Button(const sf::Font& font) : text(font), shape(), selected(false) {} // !
-    Button(const Button& object) : text(object.text), shape(object.shape), selected(object.selected) {} // !
-
-    Button& operator=(const Button& object); // !
+    Button(const sf::Font& font) : text(font), shape(), selected(false) {}
+    Button(const Button& object) : text(object.text), shape(object.shape), selected(object.selected) {}
+    Button& operator=(const Button& object);
 
     void select();
     void cancelSelection();
@@ -37,7 +34,6 @@ class Button {
     sf::Color getTextFillColor() const;
     sf::Color getTextOutlineColor() const;
     float getTextOutlineThickess() const;
-
 
     void setSize(sf::Vector2f size);
     void setPosition(sf::Vector2f position);
@@ -61,5 +57,4 @@ class Button {
 
     void draw(sf::RenderWindow& window);
     void draw(sf::RenderTexture& texture);
-
 };
