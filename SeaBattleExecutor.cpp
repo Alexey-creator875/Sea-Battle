@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
+#include <SFML/Audio.hpp>
 
 #include "GameClasses/Classes.h"
 #include "Battlefield/Battlefield.h"
@@ -91,10 +92,23 @@ const sf::Color kRed = sf::Color(235, 65, 65);
 const int kRobotMinDelay = 500;
 const int kRobotMaxDelay = 1000;
 const int kSystemDelay = 200;
+const int kSoundDelay = 700;
+
+// константы для звука
+const unsigned int kDeffaultVolume = 50;
 
 
 bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
     Delay::Delay(kSystemDelay);
+
+    // загрузка звука нажатия кнопки
+    sf::SoundBuffer soundBuffer;
+    if (!soundBuffer.loadFromFile("../assets/Music/meowSound.mp3")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Sound pushButtonSound(soundBuffer);
+    pushButtonSound.setVolume(kDeffaultVolume);
 
     // загружаем шрифт
     sf::Font myFont;
@@ -217,6 +231,9 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            pushButtonSound.play();
+            Delay::Delay(kSoundDelay);
+
             if (yesButton.isSelected()) {
                 return true;
             }
@@ -247,6 +264,15 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 
 void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
     Delay::Delay(kSystemDelay);
+
+    // загрузка звука нажатия кнопки
+    sf::SoundBuffer soundBuffer;
+    if (!soundBuffer.loadFromFile("../assets/Music/meowSound.mp3")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Sound pushButtonSound(soundBuffer);
+    pushButtonSound.setVolume(kDeffaultVolume);
 
     // загружаем шрифт
     sf::Font myFont;
@@ -337,6 +363,9 @@ void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& 
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            pushButtonSound.play();
+            Delay::Delay(kSoundDelay);
+
             if (continueButton.isSelected()) {
                 return;
             }
@@ -398,6 +427,15 @@ struct GameStatistics {
 
 namespace SeaBattleExecutor {
 bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
+    // загрузка звука нажатия кнопки
+    sf::SoundBuffer soundBuffer;
+    if (!soundBuffer.loadFromFile("../assets/Music/meowSound.mp3")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Sound pushButtonSound(soundBuffer);
+    pushButtonSound.setVolume(kDeffaultVolume);
+
     // загружаем шрифт
     sf::Font myFont;
     if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
@@ -778,6 +816,8 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            pushButtonSound.play();
+
             if (returnButton.isSelected()) {
                 returnButton.setTextFillColor(kBrown);
 
@@ -834,6 +874,15 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
 
 void StartGame(sf::RenderWindow& window) {
+    // загрузка звука нажатия кнопки
+    sf::SoundBuffer soundBuffer;
+    if (!soundBuffer.loadFromFile("../assets/Music/meowSound.mp3")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Sound pushButtonSound(soundBuffer);
+    pushButtonSound.setVolume(kDeffaultVolume);
+
     // загружаем шрифт
     sf::Font myFont;
     if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
@@ -1087,6 +1136,8 @@ void StartGame(sf::RenderWindow& window) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            pushButtonSound.play();
+
             if (giveUpButton.isSelected()) {
                 giveUpButton.setTextFillColor(kBrown);
 
@@ -1198,6 +1249,15 @@ void StartGame(sf::RenderWindow& window) {
 }
 
 void Menu(sf::RenderWindow& window) {
+    // загрузка звука нажатия кнопки
+    sf::SoundBuffer soundBuffer;
+    if (!soundBuffer.loadFromFile("../assets/Music/meowSound.mp3")) {
+        throw std::runtime_error("failed to open file");
+    }
+
+    sf::Sound pushButtonSound(soundBuffer);
+    pushButtonSound.setVolume(kDeffaultVolume);
+    
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageBackground;
     if (!imageBackground.loadFromFile("../assets/images/background.png")) {
@@ -1317,7 +1377,11 @@ void Menu(sf::RenderWindow& window) {
         }
 
         if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+            pushButtonSound.play();
+            // Delay::Delay(kSoundDelay);
+
             if (startGameButton.isSelected()) {
+                Delay::Delay(kSoundDelay); 
                 return;
             }
 

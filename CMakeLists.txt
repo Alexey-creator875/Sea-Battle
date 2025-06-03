@@ -19,7 +19,7 @@ add_subdirectory(CustomEntities)
 add_subdirectory(Delay)
 
 
-find_package(SFML REQUIRED COMPONENTS Graphics Window)
+find_package(SFML REQUIRED COMPONENTS Graphics Window Audio)
 
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
@@ -29,6 +29,8 @@ target_link_libraries(SeaBattle CustomEntities)
 target_link_libraries(SeaBattle Delay)
 target_link_libraries(SeaBattle SFML::Graphics)
 target_link_libraries(SeaBattle SFML::Window)
+target_link_libraries(SeaBattle SFML::Audio)
+
 
 if(ENABLE_DEBUG)
     target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE -g)
