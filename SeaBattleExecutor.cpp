@@ -6,13 +6,12 @@
 #include "GameClasses/Classes.h"
 #include "Battlefield/Battlefield.h"
 #include "CustomEntities/Button.h"
+#include "Delay/Delay.h"
 
 #include <stack>
 #include <iostream>
 #include <cstddef>
 #include <stdexcept>
-#include <thread>
-#include <chrono>
 #include <string>
 #include <fstream>
 #include <array>
@@ -37,48 +36,46 @@ const float kMenuButtonsSizeY = 70;
 const int kBoardCellPixelSize = 45;
 const int kDemonstrationCellPixelSize = 45;
 
+const unsigned int kArrangementTitulCharacterSize = 60;
+const unsigned int kArrangementCharacterSize = 30;
+
+const int kRequiredShipsNumber = 10;
+const int kShipsMaxSize = 4;
+
 const int kArrangementReturnButtonCoordinateX = 40;
 const int kArrangementReturnButtonCoordinateY = 40;
 
-const unsigned int kArrangementTitulCharacterSize = 60;
-const unsigned int kArrangementCharacterSize = 25;
+const int kArrangementTitulCoordinateY = 40;
 
-const int kRequiredShipsNumber = 10;
-const int kShipsVariantsNumber = 4;
-const int kShipsMaxSize = 4;
+const int kArrangementIndent = 20;
+
+const int kArrangementButtonSizeX = 200;
+const int kArrangementButtonSizeY = 55;
+
 
 // константы для игры
 const unsigned int kArraySize = 10;
 
-const int kPlayerMatrixCoordinateX = 200;
-const int kPlayerMatrixCoordinateY = 150;
+const int kCellPixelSize = 45;
 
-const int kRobotMatrixCoordinateX = 700;
-const int kRobotMatrixCoordinateY = 150;
-
-const int kCellPixelSize = 30;
-const int kCellOutlineThickness = 2;
+const int kShootPromptCoordinateY = 40;
 
 // константы для кнопки сдаться
-const unsigned int kGameGiveUpButtonSizeX = 50;
-const unsigned int kGameGiveUpButtonSizeY = 50;
 
 const int kGameGiveUpButtonCoordinateX = 40;
 const int kGameGiveUpButtonCoordinateY = 40;
 
-const unsigned int kGameGiveUpButtonCharacterSize = 25;
+const unsigned int kGameGiveUpButtonCharacterSize = 30;
 
 
 // константы для дочерних окон
-const unsigned int kChildWindowMinSizeX = 900;
+const unsigned int kChildWindowMinSizeX = 1050;
 const unsigned int kChildWindowMinSizeY = 300;
 
 const unsigned int kChildWindowMaxCharacterSize = 40;
 
 const float kChildWindowButtonSizeX = 100.f;
 const float kChildWindowButtonSizeY = 70.f;
-
-// константы для дочернего окна с дихотомическим вопросом
 
 // константы для дочернего окна с информацией
 
@@ -90,42 +87,42 @@ const sf::Color kBlue = sf::Color(70, 90, 230);
 const sf::Color kGreen = sf::Color(65, 180, 30);
 const sf::Color kRed = sf::Color(235, 65, 65);
 
-bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
+// константы для задержек
+const int kRobotMinDelay = 500;
+const int kRobotMaxDelay = 1000;
+const int kSystemDelay = 200;
 
-    // // загружаем шрифт
-    // sf::Font helveticaFont;
-    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
-    //     throw std::runtime_error("failed to open file");
-    // }
+
+bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
+    Delay::Delay(kSystemDelay);
 
     // загружаем шрифт
-    sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+    sf::Font myFont;
+    if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("../images/IMG_0801.png")) {
+    if (!backgroundTexture.loadFromFile("../assets/images/scroll.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка текстуры кнопки да
     sf::Texture yesButtonTexture;
-    if (!yesButtonTexture.loadFromFile("../images/IMG_0794.png")) {
+    if (!yesButtonTexture.loadFromFile("../assets/Images/parchmentGreen.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка текстуры кнопки нет
     sf::Texture noButtonTexture;
-    if (!noButtonTexture.loadFromFile("../images/IMG_0795.png")) {
+    if (!noButtonTexture.loadFromFile("../assets/Images/parchmentRed.png")) {
         throw std::runtime_error("failed to open file");
     }
     
     
     // создание лейбла с вопросом
-    sf::Text question(helveticaFont);
+    sf::Text question(myFont);
     question.setFillColor(kBrown);
     question.setOutlineColor(sf::Color::White);
 
@@ -134,7 +131,7 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 
 
     // создаём крутую кнопку да
-    Button yesButton(helveticaFont);
+    Button yesButton(myFont);
     yesButton.setString(L"Да");
     yesButton.setTextFillColor(kBrown);
     yesButton.setCharacterSize(kChildWindowMaxCharacterSize);
@@ -143,7 +140,7 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 
 
     // создаём крутую кнопку нет
-    Button noButton(helveticaFont);
+    Button noButton(myFont);
     noButton.setString(L"Нет");
     noButton.setTextFillColor(kBrown);
     noButton.setCharacterSize(kChildWindowMaxCharacterSize);
@@ -249,44 +246,37 @@ bool ShowChildWindowWithDichotomousQuestion(sf::RenderWindow& window, const sf::
 }
 
 void ShowChildWindowWithInformation(sf::RenderWindow& window, const sf::Sprite& windowCurrentStateSprite, const sf::String& text) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(150));
-
-    // // загружаем шрифт
-    // sf::Font helveticaFont;
-    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
-    //     throw std::runtime_error("failed to open file");
-    // }
+    Delay::Delay(kSystemDelay);
 
     // загружаем шрифт
-    sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+    sf::Font myFont;
+    if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("../images/IMG_0801.png")) {
+    if (!backgroundTexture.loadFromFile("../assets/images/scroll.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка текстуры кнопки
     sf::Texture buttonTexture;
-    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
+    if (!buttonTexture.loadFromFile("../assets/images/parchment.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // создание лейбла с информацией
-    sf::Text information(helveticaFont);
+    sf::Text information(myFont);
     information.setString(text);
     information.setFillColor(kBrown);
     information.setCharacterSize(kChildWindowMaxCharacterSize);
 
     // создаём крутую кнопку продолжить
-    Button continueButton(helveticaFont);
+    Button continueButton(myFont);
     continueButton.setString(L"Продолжить");
     continueButton.setTextFillColor(kBrown);
     continueButton.setCharacterSize(kChildWindowMaxCharacterSize);
-    // continueButton.setSize(sf::Vector2f(kChildWindowButtonSizeX, kChildWindowButtonSizeY));
     continueButton.setTexture(&buttonTexture);
 
     float informationSizeY = information.getLocalBounds().getCenter().y * 2;
@@ -386,31 +376,43 @@ sf::String GetRulesFromFile() {
     rulesFile.close();
     return sf::String::fromUtf8(text.begin(), text.end());
 }
+
+sf::String TranslateIndicesToBoardCoordinates(int x, int y) {
+    if (x < 0 || x >= kArraySize || y < 0 || y >= kArraySize) {
+        throw std::runtime_error("index out of boundary");
+    }
+
+    sf::String letters = L"абвгдежзик";
+    sf::String boardCoordinates = letters[y];
+    boardCoordinates += std::to_wstring(x + 1);
+    return boardCoordinates;
+
+}
+
+struct GameStatistics {
+    int shootsNumber = 0;
+    int killedShipsNumber = 0;
+    int unbrokenShipsNumber = kRequiredShipsNumber;
+};
 }  // namespace
 
 namespace SeaBattleExecutor {
 bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
-    // // загружаем шрифт
-    // sf::Font helveticaFont;
-    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
-    //     throw std::runtime_error("failed to open file");
-    // }
-
     // загружаем шрифт
-    sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+    sf::Font myFont;
+    if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка текстуры для кнопок и лейблов
     sf::Texture parchmentTexture;
-    if (!parchmentTexture.loadFromFile("../images/IMG_0793.png")) {
+    if (!parchmentTexture.loadFromFile("../assets/images/parchment.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageArrangementBackground;
-    if (!imageArrangementBackground.loadFromFile("../images/IMG_0799.png")) {
+    if (!imageArrangementBackground.loadFromFile("../assets/images/background.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -420,25 +422,25 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
     // загрузка текстуры неизведанной клетки
     sf::Texture waterTexture;
-    if (!waterTexture.loadFromFile("../images/IMG_0756.png")) {
+    if (!waterTexture.loadFromFile("../assets/Images/water.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры неизведанной выбранной клетки
     sf::Texture waterSelectedTexture;
-    if (!waterSelectedTexture.loadFromFile("../images/IMG_0758.png")) {
+    if (!waterSelectedTexture.loadFromFile("../assets/Images/waterSelected.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры корабля
     sf::Texture shipTexture;
-    if (!shipTexture.loadFromFile("../images/IMG_0760.png")) {
+    if (!shipTexture.loadFromFile("../assets/Images/ship.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры поля игрока
     sf::Texture playerBoardTexture;
-    if (!playerBoardTexture.loadFromFile("../images/IMG_0822.png")) {
+    if (!playerBoardTexture.loadFromFile("../assets/Images/playerBackground.png")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -451,85 +453,6 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
     playerBoardBackground.setPosition(sf::Vector2f(playerBoardBackgroundCoordinateX, playerBoardBackgroundCoordinateY));
     playerBoardBackground.setTexture(&playerBoardTexture);
-
-    // создаём крутую кнопку вернуться в меню
-    Button returnButton(helveticaFont);
-    returnButton.setString(L"Вернуться в меню");
-    returnButton.setTextFillColor(kBrown);
-    returnButton.setCharacterSize(kArrangementCharacterSize);
-
-    returnButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX, kArrangementReturnButtonCoordinateY));
-    returnButton.setTexture(&parchmentTexture);
-
-    // создаём крутую кнопку сражаться
-    Button fightButton(helveticaFont);
-    fightButton.setString(L"Сражаться");
-    fightButton.setTextFillColor(kBrown);
-    fightButton.setCharacterSize(kArrangementCharacterSize);
-
-    fightButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 400, kArrangementReturnButtonCoordinateY));
-    fightButton.setTexture(&parchmentTexture);
-
-
-    // создаём крутую кнопку сгенерировать рандомную расстановку
-    Button randomLayoutButton(helveticaFont);
-    randomLayoutButton.setString(L"Сгенерировать");
-    randomLayoutButton.setTextFillColor(kBrown);
-    randomLayoutButton.setCharacterSize(kArrangementCharacterSize);
-
-    randomLayoutButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY));
-    randomLayoutButton.setTexture(&parchmentTexture);
-
-
-    // создаём крутую кнопку очистить борды
-    Button clearButton(helveticaFont);
-    clearButton.setString(L"Очистить");
-    clearButton.setTextFillColor(kBrown);
-    clearButton.setCharacterSize(kArrangementCharacterSize);
-
-    clearButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1200, kArrangementReturnButtonCoordinateY));
-    clearButton.setTexture(&parchmentTexture);
-
-    // создаём крутую кнопку поменять длину нынешнего корабля
-    Button changeShipSizeButton(helveticaFont);
-    changeShipSizeButton.setString(L"Изменить длину");
-    changeShipSizeButton.setTextFillColor(kBrown);
-    changeShipSizeButton.setCharacterSize(kArrangementCharacterSize);
-
-    changeShipSizeButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY + 600));
-    changeShipSizeButton.setTexture(&parchmentTexture);
-
-    // создаём крутую кнопку вращающую корабль
-    Button rotateButton(helveticaFont);
-    rotateButton.setString(L"Повернуть");
-    rotateButton.setTextFillColor(kBrown);
-    rotateButton.setCharacterSize(kArrangementCharacterSize);
-
-    rotateButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1100, kArrangementReturnButtonCoordinateY + 600));
-    rotateButton.setTexture(&parchmentTexture);
-
-    // создаём крутую кнопку отменяющую размещение корабля
-    Button undoButton(helveticaFont);
-    undoButton.setString(L"Отменить");
-    undoButton.setTextFillColor(kBrown);
-    undoButton.setCharacterSize(kArrangementCharacterSize);
-
-    undoButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 1100, kArrangementReturnButtonCoordinateY + 800));
-    undoButton.setTexture(&parchmentTexture);
-
-    // создаём поле с отображением нынешнего корабля
-    sf::RectangleShape currentShipField;
-    currentShipField.setSize(sf::Vector2f(6 * kDemonstrationCellPixelSize, 6 * kDemonstrationCellPixelSize));
-    currentShipField.setTexture(&parchmentTexture);
-    currentShipField.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX + 800, kArrangementReturnButtonCoordinateY + 200));
-
-    // создаём массив шейпов для нынешнего корабля
-    std::array<sf::RectangleShape, kShipsMaxSize> shipShapeArray;
-    for (size_t i = 0; i < kShipsMaxSize; ++i) {
-        shipShapeArray[i].setPosition(sf::Vector2f((currentShipField.getPosition().x + kDemonstrationCellPixelSize) + i * kDemonstrationCellPixelSize, currentShipField.getPosition().y + kDemonstrationCellPixelSize));
-        shipShapeArray[i].setSize(sf::Vector2f(kDemonstrationCellPixelSize, kDemonstrationCellPixelSize));
-        shipShapeArray[i].setTexture(&shipTexture);
-    }
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -549,12 +472,131 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
         }
     }
 
+    sf::Text arrangementTitul(myFont);
+    arrangementTitul.setCharacterSize(kArrangementTitulCharacterSize);
+    arrangementTitul.setString(L"Расстановка кораблей");
+    arrangementTitul.setFillColor(kBlue);
+    arrangementTitul.setOutlineColor(sf::Color::White);
+    arrangementTitul.setOutlineThickness(2);
 
-    // playerBoard.autoPlaceShips();
+    float arrangementTitulCoordinateX = window.getSize().x / 2 - arrangementTitul.getLocalBounds().getCenter().x;
+    arrangementTitul.setPosition(sf::Vector2f(arrangementTitulCoordinateX, kArrangementTitulCoordinateY));
+
+    // создаём поле с отображением нынешнего корабля
+    sf::RectangleShape currentShipField;
+    currentShipField.setSize(sf::Vector2f(6 * kDemonstrationCellPixelSize, 6 * kDemonstrationCellPixelSize));
+    currentShipField.setTexture(&parchmentTexture);
+
+    float currentShipFieldCoordinateX = window.getSize().x / 2 + kArrangementIndent;
+    float currentShipFieldCoordinateY = playerBoardBackgroundCoordinateY + 3 * kBoardCellPixelSize;
+
+    currentShipField.setPosition(sf::Vector2f(currentShipFieldCoordinateX, currentShipFieldCoordinateY));
+
+    // создаём крутую кнопку вернуться в меню
+    Button returnButton(myFont);
+    returnButton.setString(L"Вернуться в меню");
+    returnButton.setTextFillColor(kBrown);
+    returnButton.setCharacterSize(kArrangementCharacterSize);
+
+    returnButton.setPosition(sf::Vector2f(kArrangementReturnButtonCoordinateX, kArrangementReturnButtonCoordinateY));
+    returnButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку поменять длину нынешнего корабля
+    Button changeShipSizeButton(myFont);
+    changeShipSizeButton.setString(L"Изменить длину");
+    changeShipSizeButton.setTextFillColor(kBrown);
+    changeShipSizeButton.setCharacterSize(kArrangementCharacterSize);
+    changeShipSizeButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float changeShipSizeButtonCoordinateX = currentShipFieldCoordinateX;
+    float changeShipSizeButtonCoordinateY = currentShipFieldCoordinateY + currentShipField.getSize().y + kArrangementIndent;
+
+    changeShipSizeButton.setPosition(sf::Vector2f(changeShipSizeButtonCoordinateX, changeShipSizeButtonCoordinateY));
+    changeShipSizeButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку вращающую корабль
+    Button rotateButton(myFont);
+    rotateButton.setString(L"Повернуть");
+    rotateButton.setTextFillColor(kBrown);
+    rotateButton.setCharacterSize(kArrangementCharacterSize);
+    rotateButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float rotateButtonCoordinateX = changeShipSizeButtonCoordinateX + rotateButton.getSize().x + kArrangementIndent;
+    float rotateButtonCoordinateY = changeShipSizeButtonCoordinateY;
+
+    rotateButton.setPosition(sf::Vector2f(rotateButtonCoordinateX, rotateButtonCoordinateY));
+    rotateButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку сгенерировать рандомную расстановку
+    Button randomLayoutButton(myFont);
+    randomLayoutButton.setString(L"Сгенерировать");
+    randomLayoutButton.setTextFillColor(kBrown);
+    randomLayoutButton.setCharacterSize(kArrangementCharacterSize);
+    randomLayoutButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float randomLayoutButtonCoordinateX = changeShipSizeButtonCoordinateX;
+    float randomLayoutButtonCoordinateY = changeShipSizeButtonCoordinateY + changeShipSizeButton.getSize().y + kArrangementIndent;
+
+    randomLayoutButton.setPosition(sf::Vector2f(randomLayoutButtonCoordinateX, randomLayoutButtonCoordinateY));
+    randomLayoutButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку очистить борды
+    Button clearButton(myFont);
+    clearButton.setString(L"Очистить");
+    clearButton.setTextFillColor(kBrown);
+    clearButton.setCharacterSize(kArrangementCharacterSize);
+    clearButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float clearButtonCoordinateX = randomLayoutButtonCoordinateX + randomLayoutButton.getSize().x + kArrangementIndent;
+    float clearButtonCoordinateY = randomLayoutButtonCoordinateY;
+
+    clearButton.setPosition(sf::Vector2f(clearButtonCoordinateX, clearButtonCoordinateY));
+    clearButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку отменяющую размещение корабля
+    Button undoButton(myFont);
+    undoButton.setString(L"Отменить");
+    undoButton.setTextFillColor(kBrown);
+    undoButton.setCharacterSize(kArrangementCharacterSize);
+    undoButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float undoButtonCoordinateX = randomLayoutButtonCoordinateX;
+    float undoButtonCoordinateY = randomLayoutButtonCoordinateY + randomLayoutButton.getSize().y + kArrangementIndent;
+
+    undoButton.setPosition(sf::Vector2f(undoButtonCoordinateX, undoButtonCoordinateY));
+    undoButton.setTexture(&parchmentTexture);
+
+    // создаём крутую кнопку сражаться
+    Button fightButton(myFont);
+    fightButton.setString(L"Сражаться");
+    fightButton.setTextFillColor(kBrown);
+    fightButton.setCharacterSize(kArrangementCharacterSize);
+    fightButton.setSize(sf::Vector2f(kArrangementButtonSizeX, kArrangementButtonSizeY));
+
+    float fightButtonCoordinateX = undoButtonCoordinateX + undoButton.getSize().x + kArrangementIndent;
+    float fightButtonCoordinateY = undoButtonCoordinateY;
+
+    fightButton.setPosition(sf::Vector2f(fightButtonCoordinateX, fightButtonCoordinateY));
+    fightButton.setTexture(&parchmentTexture);
+
+    // передвигаем поле в центр кнопок
+    currentShipFieldCoordinateX += (changeShipSizeButton.getSize().x + rotateButton.getSize().x + kArrangementIndent - currentShipField.getSize().x) / 2;
+    currentShipField.setPosition(sf::Vector2f(currentShipFieldCoordinateX, currentShipFieldCoordinateY));
+
+    // создаём массив шейпов для нынешнего корабля
+    std::array<sf::RectangleShape, kShipsMaxSize> shipShapeArray;
+    for (size_t i = 0; i < kShipsMaxSize; ++i) {
+        shipShapeArray[i].setPosition(sf::Vector2f((currentShipField.getPosition().x + kDemonstrationCellPixelSize) + i * kDemonstrationCellPixelSize, currentShipField.getPosition().y + kDemonstrationCellPixelSize));
+        shipShapeArray[i].setSize(sf::Vector2f(kDemonstrationCellPixelSize, kDemonstrationCellPixelSize));
+        shipShapeArray[i].setTexture(&shipTexture);
+    }
+
     randomPlaceShips(playerBoard);
 
-    auto DrawAllEntitiesInWindow = [] (auto& window, auto& arrangementBackground, auto& playerBoardBackground, auto& playerShapeMatrix, auto& returnButton, auto& fightButton, auto& randomLayoutButton, auto& clearButton, auto& changeLengthButton, auto& rotateButton, auto& undoButton, auto& currentShipField, auto& shipShapeArray) {
+    auto DrawAllEntitiesInWindow = [] (auto& window, auto& arrangementBackground, auto& arrangementTitul, auto& playerBoardBackground, auto& playerShapeMatrix, auto& returnButton, auto& fightButton, auto& randomLayoutButton, auto& clearButton, auto& changeLengthButton, auto& rotateButton, auto& undoButton, auto& currentShipField, auto& shipShapeArray) {
         window.draw(arrangementBackground);
+
+        window.draw(arrangementTitul);
 
         window.draw(playerBoardBackground);
         for (size_t i = 0; i < kArraySize; ++i) {
@@ -739,7 +781,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
             if (returnButton.isSelected()) {
                 returnButton.setTextFillColor(kBrown);
 
-                DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
+                DrawAllEntitiesInWindow(window, arrangementBackground, arrangementTitul, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
 
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
@@ -750,7 +792,7 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
                 }
             }
 
-            if (fightButton.isSelected()) {
+            if (fightButton.isSelected() && playerBoard.countShip() == kRequiredShipsNumber) {
                 return true;
             }
 
@@ -758,37 +800,31 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
                 randomPlaceShips(playerBoard);
                 shipsPlacementLog = std::stack<Ship>();
                 FillShipsCountMap(shipsCountMap);
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
             if (clearButton.isSelected()) {
                 playerBoard.clearBoard();
                 shipsPlacementLog = std::stack<Ship>();
                 ResetShipsCountMap(shipsCountMap);
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
             if (changeShipSizeButton.isSelected()) {
                 currentShipSize = currentShipSize % kShipsMaxSize + 1;
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
             if (rotateButton.isSelected()) {
                 horizontally = !horizontally;
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
 
             if (undoButton.isSelected() && !shipsPlacementLog.empty()) {
-                // std::cout << shipsPlacementLog.size() << '\n';
                 playerBoard.deleteShip(shipsPlacementLog.top());
                 shipsPlacementLog.pop();
-                // playerBoard.deleteShip(Ship(0, 0, 3, true));
-                // std::cout << (playerBoard.getCell(0, 0) == CellStatus::Ship) << ' ' << '\n';
-                std::this_thread::sleep_for(std::chrono::milliseconds(250));
             }
+
+            Delay::Delay(kSystemDelay);
         }
 
-        DrawAllEntitiesInWindow(window, arrangementBackground, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
+        DrawAllEntitiesInWindow(window, arrangementBackground, arrangementTitul, playerBoardBackground, playerShapeMatrix, returnButton, fightButton, randomLayoutButton, clearButton, changeShipSizeButton, rotateButton, undoButton, currentShipField, shipShapeArray);
 
         window.display();
     }
@@ -798,24 +834,15 @@ bool ArrangePlayerShips(sf::RenderWindow& window, Board& playerBoard) {
 
 
 void StartGame(sf::RenderWindow& window) {
-    bool gameContinueExecution = true;
-    bool playerMove = true;
-
     // загружаем шрифт
-    sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+    sf::Font myFont;
+    if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
-    // // загружаем шрифт
-    // sf::Font helveticaFont;
-    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
-    //     throw std::runtime_error("failed to open file");
-    // }
-
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageGameBackground;
-    if (!imageGameBackground.loadFromFile("../images/IMG_0799.png")) {
+    if (!imageGameBackground.loadFromFile("../assets/images/background.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -825,37 +852,37 @@ void StartGame(sf::RenderWindow& window) {
 
     // загрузка текстуры неизведанной клетки
     sf::Texture waterTexture;
-    if (!waterTexture.loadFromFile("../images/IMG_0756.png")) {
+    if (!waterTexture.loadFromFile("../assets/Images/water.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры неизведанной выбранной клетки
     sf::Texture waterSelectedTexture;
-    if (!waterSelectedTexture.loadFromFile("../images/IMG_0758.png")) {
+    if (!waterSelectedTexture.loadFromFile("../assets/Images/waterSelected.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры пустой клетки
     sf::Texture voidTexture;
-    if (!voidTexture.loadFromFile("../images/IMG_0761.png")) {
+    if (!voidTexture.loadFromFile("../assets/Images/empty.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры корабля
     sf::Texture shipTexture;
-    if (!shipTexture.loadFromFile("../images/IMG_0760.png")) {
+    if (!shipTexture.loadFromFile("../assets/Images/ship.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры подбитого корабля
     sf::Texture hittedShipTexture;
-    if (!hittedShipTexture.loadFromFile("../images/IMG_0759.png")) {
+    if (!hittedShipTexture.loadFromFile("../assets/Images/shipHitted.png")) {
         throw std::runtime_error("failed to load image");
     }
 
     // загрузка текстуры поля игрока
     sf::Texture playerBoardTexture;
-    if (!playerBoardTexture.loadFromFile("../images/IMG_0818.png")) {
+    if (!playerBoardTexture.loadFromFile("../assets/Images/playerBackground.png")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -871,7 +898,7 @@ void StartGame(sf::RenderWindow& window) {
 
     // загрузка текстуры поля робота
     sf::Texture robotBoardTexture;
-    if (!robotBoardTexture.loadFromFile("../images/IMG_0819.png")) {
+    if (!robotBoardTexture.loadFromFile("../assets/Images/enemyBackground.png")) {
         throw std::runtime_error("failed to load image");
     }
 
@@ -888,12 +915,12 @@ void StartGame(sf::RenderWindow& window) {
 
     // загрузка текстуры кнопок
     sf::Texture buttonTexture;
-    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
+    if (!buttonTexture.loadFromFile("../assets/images/parchment.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // создаём крутую кнопку сдаться
-    Button giveUpButton(helveticaFont);
+    Button giveUpButton(myFont);
     giveUpButton.setString(L"Сдаться");
     giveUpButton.setTextFillColor(kBrown);
     giveUpButton.setCharacterSize(kGameGiveUpButtonCharacterSize);
@@ -906,6 +933,7 @@ void StartGame(sf::RenderWindow& window) {
     if (!ArrangePlayerShips(window, playerBoard)) {
         return;
     }
+    Delay::Delay(kSystemDelay);
 
     // создание массива шейпов для игрока
     std::array<std::array<sf::RectangleShape, kArraySize>, kArraySize> playerShapeMatrix;
@@ -927,7 +955,6 @@ void StartGame(sf::RenderWindow& window) {
 
     // создание борда для робота
     Board robotBoard;
-    // robotBoard.autoPlaceShips();
     randomPlaceShips(robotBoard);
 
     // создание массива шейпов для робота
@@ -941,8 +968,24 @@ void StartGame(sf::RenderWindow& window) {
         }
     }
 
-    int numi = -1;
-    int numj = -1;
+    // создание подсказки с информацией какой выстрел произведён
+    Button shootPrompt(myFont);
+    shootPrompt.setString(L"Удачной игры!");
+    shootPrompt.setTextFillColor(kBrown);
+    shootPrompt.setCharacterSize(kGameGiveUpButtonCharacterSize);
+    shootPrompt.setTexture(&buttonTexture);
+
+    auto CenterShootPrompt = [] (auto& shootPrompt, auto& window) {
+        shootPrompt.setPosition(sf::Vector2f((window.getSize().x - shootPrompt.getSize().x) / 2, kShootPromptCoordinateY));
+    };
+
+    CenterShootPrompt(shootPrompt, window);
+
+    bool gameContinueExecution = true;
+    bool playerMove = true;
+
+    int selectedCellX = -1;
+    int selectedCellY = -1;
 
     int robotShootX = 0;
     int robotShootY = 0;
@@ -950,8 +993,13 @@ void StartGame(sf::RenderWindow& window) {
     int xHit = 0;
     int yHit = 0;
 
-    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& gameBackground, auto& playerBoardBackground, auto& robotBoardBackground, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
+    GameStatistics playerStatistics{};
+
+    auto DrawAllEntitiesInWindow = [] (sf::RenderWindow& window, auto& gameBackground, auto& shootPrompt, auto& playerBoardBackground, auto& robotBoardBackground, auto& playerShapeMatrix, auto& robotShapeMatrix, auto& giveUpButton) {
         window.draw(gameBackground);
+
+        shootPrompt.draw(window);
+
         window.draw(playerBoardBackground);
         window.draw(robotBoardBackground);
 
@@ -992,25 +1040,7 @@ void StartGame(sf::RenderWindow& window) {
         }
     };
 
-    while (window.isOpen() && gameContinueExecution) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-                return;
-            }
-        }
-
-        if (playerBoard.allShipsSunk() || robotBoard.allShipsSunk()) {
-            gameContinueExecution = false;
-            continue;
-        }
-
-        window.clear();
-
-        giveUpButton.setTextFillColor(kBrown);
-        giveUpButton.cancelSelection();
-
-        // очистка клеток поля робота
+    auto UpdateRobotShapeMatrix = [waterTexture, voidTexture, hittedShipTexture] (auto& robotShapeMatrix, auto& robotBoard) {
         for (size_t i = 0; i < kArraySize; ++i) {
             for (size_t j = 0; j < kArraySize; ++j) {
                 if (!robotBoard.isShooted(i, j)) {
@@ -1027,6 +1057,29 @@ void StartGame(sf::RenderWindow& window) {
                 }
             }
         }
+    };
+
+    while (window.isOpen() && gameContinueExecution) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                window.close();
+                return;
+            }
+        }
+
+        window.clear();
+
+        giveUpButton.setTextFillColor(kBrown);
+        giveUpButton.cancelSelection();
+
+        UpdateRobotShapeMatrix(robotShapeMatrix, robotBoard);
+
+        if (playerBoard.allShipsSunk() || robotBoard.allShipsSunk()) {
+            gameContinueExecution = false;
+            DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+            window.display();
+            continue;
+        }
 
         if (giveUpButton.getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
             giveUpButton.setTextFillColor(kBlue);
@@ -1037,23 +1090,26 @@ void StartGame(sf::RenderWindow& window) {
             if (giveUpButton.isSelected()) {
                 giveUpButton.setTextFillColor(kBrown);
 
-                DrawAllEntitiesInWindow(window, gameBackground, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+                DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
                 sf::Texture windowCurrentStateTexture(window.getSize());
                 windowCurrentStateTexture.update(window);
                 sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
                 
                 if (ShowChildWindowWithDichotomousQuestion(window, windowCurrentStateSprite, L"Вы уверены, что \nхотите сдаться?")) {
-                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Поражение! В следующий раз получится :(");
+                    sf::String text = L"Поражение! В следующий раз получится :(";
+                    text += L"\nКоличество выстрелов: " + std::to_wstring(playerStatistics.shootsNumber);
+                    text += L"\nУничтожено кораблей: " +  std::to_wstring(playerStatistics.killedShipsNumber);
+                    ShowChildWindowWithInformation(window, windowCurrentStateSprite, text);
                     return;
                 }
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+                Delay::Delay(kSystemDelay);
             }
         }
 
-        numi = -1;
-        numj = -1;
+        selectedCellX = -1;
+        selectedCellY = -1;
 
         if (playerMove) {
             for (size_t i = 0; i < kArraySize; ++i) {
@@ -1063,26 +1119,42 @@ void StartGame(sf::RenderWindow& window) {
                     }
 
                     if (robotShapeMatrix[i][j].getGlobalBounds().contains(static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)))) {
-                        numi = i;
-                        numj = j;
+                        selectedCellX = i;
+                        selectedCellY = j;
                     }
                 }
             }
 
-            if (numi >= 0 && numj >= 0) {
-                robotShapeMatrix[numi][numj].setTexture(&waterSelectedTexture);
+            if (selectedCellX >= 0 && selectedCellY >= 0) {
+                robotShapeMatrix[selectedCellX][selectedCellY].setTexture(&waterSelectedTexture);
             }
 
             if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-                if (numi >= 0 && numj >= 0) {
-                    if (robotBoard.shoot(numi, numj) == ShootResult::Miss) {
-                        playerMove = false;
+                if (selectedCellX >= 0 && selectedCellY >= 0) {
+                    ShootResult shootResult = robotBoard.shoot(selectedCellX, selectedCellY);
+                    UpdateRobotShapeMatrix(robotShapeMatrix, robotBoard);
+                    ++playerStatistics.shootsNumber;
+
+                    switch(shootResult) {
+                        case ShootResult::Miss:
+                            playerMove = false;
+                            break;
+                        case ShootResult::Kill:
+                            ++playerStatistics.killedShipsNumber;
+                            break;
+                        case ShootResult::Hit:
+                            break;
                     }
+
+                    shootPrompt.setString(L"Вы выстрелили: " + TranslateIndicesToBoardCoordinates(selectedCellX, selectedCellY));
+                    CenterShootPrompt(shootPrompt, window);
                 }
             }
         } else if (!playerMove) {
             ShootResult shootResult = (hittedShip)? smartShoot(playerBoard, xHit, yHit, robotShootX, robotShootY) : randomShoot(playerBoard, robotShootX, robotShootY);
             UpdatePlayerShapeMatrix(playerShapeMatrix, playerBoard);
+            shootPrompt.setString(L"Противник выстрелил: " + TranslateIndicesToBoardCoordinates(robotShootX, robotShootY));
+            CenterShootPrompt(shootPrompt, window);
 
             switch(shootResult) {
                 case ShootResult::Miss:
@@ -1095,13 +1167,14 @@ void StartGame(sf::RenderWindow& window) {
                     break;
                 case ShootResult::Kill:
                     hittedShip = false;
+                    --playerStatistics.unbrokenShipsNumber;
                     break;
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            Delay::Delay(Delay::GetRandomDelay(kRobotMinDelay, kRobotMaxDelay));
         }
         
-        DrawAllEntitiesInWindow(window, gameBackground, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
+        DrawAllEntitiesInWindow(window, gameBackground, shootPrompt, playerBoardBackground, robotBoardBackground, playerShapeMatrix, robotShapeMatrix, giveUpButton);
 
         window.display();
     }
@@ -1111,23 +1184,29 @@ void StartGame(sf::RenderWindow& window) {
     sf::Sprite windowCurrentStateSprite(windowCurrentStateTexture);
 
     if (robotBoard.allShipsSunk()) {
-        ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Победа! Поздравляем :)");
+        sf::String text = L"Победа! Поздравляем :)";
+        text += L"\nКоличество выстрелов: " + std::to_wstring(playerStatistics.shootsNumber);
+        text += L"\nОсталось кораблей: " +  std::to_wstring(playerStatistics.unbrokenShipsNumber);
+        ShowChildWindowWithInformation(window, windowCurrentStateSprite, text);
         return;
     }
 
-    ShowChildWindowWithInformation(window, windowCurrentStateSprite, L"Поражение! В следующий раз получится :(");
+    sf::String text = L"Поражение! В следующий раз получится :(";
+    text += L"\nКоличество выстрелов: " + std::to_wstring(playerStatistics.shootsNumber);
+    text += L"\nУничтожено кораблей: " +  std::to_wstring(playerStatistics.killedShipsNumber);
+    ShowChildWindowWithInformation(window, windowCurrentStateSprite, text);
 }
 
 void Menu(sf::RenderWindow& window) {
     // загрузка картинки заднего фона в текстуру
     sf::Texture imageBackground;
-    if (!imageBackground.loadFromFile("../images/IMG_0799.png")) {
+    if (!imageBackground.loadFromFile("../assets/images/background.png")) {
         throw std::runtime_error("failed to open file");
     }
 
     // загрузка текстуры кнопок
     sf::Texture buttonTexture;
-    if (!buttonTexture.loadFromFile("../images/IMG_0793.png")) {
+    if (!buttonTexture.loadFromFile("../assets/images/parchment.png")) {
         throw std::runtime_error("failed to open file");
     }
 
@@ -1136,19 +1215,13 @@ void Menu(sf::RenderWindow& window) {
     backGround.setTexture(&imageBackground);
 
     // загружаем шрифт
-    sf::Font helveticaFont;
-    if (!helveticaFont.openFromFile("../images/Myfont-Regular 3.otf")) {
+    sf::Font myFont;
+    if (!myFont.openFromFile("../assets/Fonts/MyFont.otf")) {
         throw std::runtime_error("failed to open file");
     }
 
-    // // загружаем шрифт
-    // sf::Font helveticaFont;
-    // if (!helveticaFont.openFromFile("../images/helvetica_light.otf")) {
-    //     throw std::runtime_error("failed to open file");
-    // }
-
     // создаём лейбл для названия игры
-    sf::Text titul(helveticaFont, sf::String(L"Морской бой"));
+    sf::Text titul(myFont, sf::String(L"Морской бой"));
     titul.setFillColor(kBlue);
     titul.setCharacterSize(kMenuTitulCharacterSize);
     titul.setOutlineThickness(2);
@@ -1159,7 +1232,7 @@ void Menu(sf::RenderWindow& window) {
 
 
     // создаём крутую кнопку, начинающую игру
-    Button startGameButton(helveticaFont);
+    Button startGameButton(myFont);
     startGameButton.setString(L"Начать игру");
     startGameButton.setTextFillColor(kBrown);
     startGameButton.setCharacterSize(kMenuButtonsCharacterSize);
@@ -1172,7 +1245,7 @@ void Menu(sf::RenderWindow& window) {
 
 
     // создаём крутую кнопку, показывающую правила игры
-    Button showRulesButton(helveticaFont);
+    Button showRulesButton(myFont);
     showRulesButton.setString(L"Посмотреть правила игры");
     showRulesButton.setTextFillColor(kBrown);
     showRulesButton.setCharacterSize(kMenuButtonsCharacterSize);
@@ -1184,7 +1257,7 @@ void Menu(sf::RenderWindow& window) {
 
 
     // создаём крутую кнопку, закрывающую игру
-    Button quitGameCoolButton(helveticaFont);
+    Button quitGameCoolButton(myFont);
     quitGameCoolButton.setString(L"Выйти из игры");
     quitGameCoolButton.setTextFillColor(kBrown);
     quitGameCoolButton.setCharacterSize(kMenuButtonsCharacterSize);
@@ -1257,7 +1330,7 @@ void Menu(sf::RenderWindow& window) {
 
                 ShowChildWindowWithInformation(window, windowCurrentStateSprite, GetRulesFromFile());
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+                Delay::Delay(kSystemDelay);
             }
 
             if (quitGameCoolButton.isSelected()) {
@@ -1272,7 +1345,7 @@ void Menu(sf::RenderWindow& window) {
                     return;
                 }
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(150));
+                Delay::Delay(kSystemDelay);
             }
         }
 
@@ -1282,7 +1355,7 @@ void Menu(sf::RenderWindow& window) {
 }
 
 void RunApplication() {
-    sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), "Sea Battle", sf::State::Fullscreen);
+    sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode()), L"Морской бой", sf::State::Fullscreen);
 
     while (window.isOpen()) {
         Menu(window);
@@ -1292,6 +1365,7 @@ void RunApplication() {
         }
 
         StartGame(window);
+        Delay::Delay(kSystemDelay);
     }
 }
 }  // namespace SeaBattleExecutor
