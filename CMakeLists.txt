@@ -14,7 +14,7 @@ set(HEADERS
 )
 
 add_subdirectory(GameClasses)
-add_subdirectory(Battlefield)
+add_subdirectory(BoardInteractions)
 add_subdirectory(CustomEntities)
 add_subdirectory(Delay)
 
@@ -24,7 +24,7 @@ find_package(SFML REQUIRED COMPONENTS Graphics Window Audio)
 add_executable(SeaBattle ${SOURCES} ${HEADERS})
 
 target_link_libraries(SeaBattle GameClasses)
-target_link_libraries(SeaBattle Battlefield)
+target_link_libraries(SeaBattle BoardInteractions)
 target_link_libraries(SeaBattle CustomEntities)
 target_link_libraries(SeaBattle Delay)
 target_link_libraries(SeaBattle SFML::Graphics)

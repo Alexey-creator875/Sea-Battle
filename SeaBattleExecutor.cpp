@@ -5,7 +5,7 @@
 #include <SFML/Audio.hpp>
 
 #include "GameClasses/Classes.h"
-#include "Battlefield/Battlefield.h"
+#include "BoardInteractions/BoardInteractions.h"
 #include "CustomEntities/Button.h"
 #include "Delay/Delay.h"
 
